@@ -3,6 +3,7 @@ use num::ToPrimitive;
 use tangram_zip::zip;
 
 /// RegressionMetrics computes metrics used to evaluate regressors.
+#[derive(Debug, Clone)]
 pub struct RegressionMetrics {
 	mean_variance: MeanVariance,
 	absolute_error: f64,
@@ -16,7 +17,7 @@ pub struct RegressionMetricsInput<'a> {
 }
 
 /// The output from [`RegressionMetrics`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RegressionMetricsOutput {
 	/// The mean squared error is equal to the mean of the squared errors. For a given example, the error is the difference between the true value and the model's predicted value.
 	pub mse: f32,

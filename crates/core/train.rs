@@ -1052,7 +1052,7 @@ fn compute_baseline_metrics(
 	}
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TrainGridItemOutput {
 	pub train_model_output: TrainModelOutput,
 	pub comparison_metrics: Metrics,

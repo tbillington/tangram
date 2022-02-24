@@ -40,6 +40,14 @@ struct Model {
 	model: tangram_core::predict::Model,
 	log_queue: Vec<Event>,
 	tangram_url: Url,
+	core_model: CoreModel,
+}
+
+#[derive(Debug)]
+enum CoreModel {
+	Path(String),
+	Model(tangram_core::model::Model),
+	Bytes(Vec<u8>),
 }
 
 #[pymethods]
@@ -62,7 +70,7 @@ impl Model {
 		path: String,
 		options: Option<LoadModelOptions>,
 	) -> PyResult<Model> {
-		let file = std::fs::File::open(path)?;
+		let file = std::fs::File::open(&path)?;
 		let bytes = unsafe { Mmap::map(&file)? };
 		let model = tangram_model::from_bytes(&bytes).map_err(TangramError)?;
 		let model = tangram_core::predict::Model::from(model);
@@ -76,6 +84,7 @@ impl Model {
 			model,
 			log_queue: Vec::new(),
 			tangram_url,
+			core_model: CoreModel::Path(path),
 		};
 		Ok(model)
 	}
@@ -110,6 +119,7 @@ impl Model {
 			model,
 			log_queue: Vec::new(),
 			tangram_url,
+			core_model: CoreModel::Bytes(bytes),
 		};
 		Ok(model)
 	}
@@ -120,6 +130,35 @@ impl Model {
 	#[getter]
 	fn id(&self) -> String {
 		self.model.id.clone()
+	}
+
+	/**
+	Set the model's tangram_url.
+		*/
+	#[setter]
+	fn set_tangram_url(&mut self, url: String) -> PyResult<()> {
+		let tangram_url = url
+			.parse()
+			.map_err(|_| TangramError(anyhow!("Failed to parse tangram_url")))?;
+		self.tangram_url = tangram_url;
+		Ok(())
+	}
+
+	#[pyo3(text_signature = "(path)")]
+	fn to_path(&self, path: String) -> PyResult<()> {
+		let path: std::path::PathBuf = path.into();
+		match &self.core_model {
+			CoreModel::Model(model) => model
+				.to_path(&path)
+				.map_err(|err| TangramError(err.into()))?,
+			CoreModel::Path(current_model_path) => std::fs::copy(current_model_path, path)
+				.map_err(|err| TangramError(err.into()))
+				.map(|_| {})?,
+			CoreModel::Bytes(bytes) => {
+				tangram_model::to_path(&path, &bytes).map_err(|err| TangramError(err.into()))?;
+			}
+		};
+		Ok(())
 	}
 
 	/**
@@ -1088,9 +1127,10 @@ fn train_inner(
 	let tangram_url = tangram_url.parse().unwrap();
 
 	let model = Model {
-		model: model.into(),
+		model: model.clone().into(),
 		log_queue: Vec::new(),
 		tangram_url,
+		core_model: CoreModel::Model(model),
 	};
 	Ok(model)
 }

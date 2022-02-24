@@ -11,6 +11,7 @@ use std::path::Path;
 use tangram_id::Id;
 use tangram_zip::zip;
 
+#[derive(Debug, Clone)]
 pub struct Model {
 	pub id: Id,
 	pub version: String,
@@ -18,12 +19,14 @@ pub struct Model {
 	pub inner: ModelInner,
 }
 
+#[derive(Debug, Clone)]
 pub enum ModelInner {
 	Regressor(Regressor),
 	BinaryClassifier(BinaryClassifier),
 	MulticlassClassifier(MulticlassClassifier),
 }
 
+#[derive(Debug, Clone)]
 pub struct Regressor {
 	pub target_column_name: String,
 	pub train_row_count: usize,
@@ -44,6 +47,7 @@ pub struct Regressor {
 	pub test_metrics: tangram_metrics::RegressionMetricsOutput,
 }
 
+#[derive(Debug, Clone)]
 pub struct BinaryClassifier {
 	pub target_column_name: String,
 	pub negative_class: String,
@@ -66,6 +70,7 @@ pub struct BinaryClassifier {
 	pub test_metrics: tangram_metrics::BinaryClassificationMetricsOutput,
 }
 
+#[derive(Debug, Clone)]
 pub struct MulticlassClassifier {
 	pub target_column_name: String,
 	pub classes: Vec<String>,
@@ -87,28 +92,30 @@ pub struct MulticlassClassifier {
 	pub test_metrics: tangram_metrics::MulticlassClassificationMetricsOutput,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Task {
 	BinaryClassification,
 	MulticlassClassification,
 	Regression,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum BinaryClassificationComparisonMetric {
 	AucRoc,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum MulticlassClassificationComparisonMetric {
 	Accuracy,
 }
 
+#[derive(Debug, Clone)]
 pub enum RegressionModel {
 	Linear(LinearRegressionModel),
 	Tree(TreeRegressionModel),
 }
 
+#[derive(Debug, Clone)]
 pub struct LinearRegressionModel {
 	pub model: tangram_linear::Regressor,
 	pub train_options: tangram_linear::TrainOptions,
@@ -117,6 +124,7 @@ pub struct LinearRegressionModel {
 	pub feature_importances: Vec<f32>,
 }
 
+#[derive(Debug, Clone)]
 pub struct TreeRegressionModel {
 	pub model: tangram_tree::Regressor,
 	pub train_options: tangram_tree::TrainOptions,
@@ -125,7 +133,7 @@ pub struct TreeRegressionModel {
 	pub feature_importances: Vec<f32>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum RegressionComparisonMetric {
 	MeanAbsoluteError,
 	MeanSquaredError,
@@ -133,11 +141,13 @@ pub enum RegressionComparisonMetric {
 	R2,
 }
 
+#[derive(Debug, Clone)]
 pub enum BinaryClassificationModel {
 	Linear(LinearBinaryClassificationModel),
 	Tree(TreeBinaryClassificationModel),
 }
 
+#[derive(Debug, Clone)]
 pub struct LinearBinaryClassificationModel {
 	pub model: tangram_linear::BinaryClassifier,
 	pub train_options: tangram_linear::TrainOptions,
@@ -146,6 +156,7 @@ pub struct LinearBinaryClassificationModel {
 	pub feature_importances: Vec<f32>,
 }
 
+#[derive(Debug, Clone)]
 pub struct TreeBinaryClassificationModel {
 	pub model: tangram_tree::BinaryClassifier,
 	pub train_options: tangram_tree::TrainOptions,
@@ -154,11 +165,13 @@ pub struct TreeBinaryClassificationModel {
 	pub feature_importances: Vec<f32>,
 }
 
+#[derive(Debug, Clone)]
 pub enum MulticlassClassificationModel {
 	Linear(LinearMulticlassClassificationModel),
 	Tree(TreeMulticlassClassificationModel),
 }
 
+#[derive(Debug, Clone)]
 pub struct LinearMulticlassClassificationModel {
 	pub model: tangram_linear::MulticlassClassifier,
 	pub train_options: tangram_linear::TrainOptions,
@@ -167,6 +180,7 @@ pub struct LinearMulticlassClassificationModel {
 	pub feature_importances: Vec<f32>,
 }
 
+#[derive(Debug, Clone)]
 pub struct TreeMulticlassClassificationModel {
 	pub model: tangram_tree::MulticlassClassifier,
 	pub train_options: tangram_tree::TrainOptions,
@@ -175,14 +189,14 @@ pub struct TreeMulticlassClassificationModel {
 	pub feature_importances: Vec<f32>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ComparisonMetric {
 	Regression(RegressionComparisonMetric),
 	BinaryClassification(BinaryClassificationComparisonMetric),
 	MulticlassClassification(MulticlassClassificationComparisonMetric),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Metrics {
 	Regression(tangram_metrics::RegressionMetricsOutput),
 	BinaryClassification(tangram_metrics::BinaryClassificationMetricsOutput),

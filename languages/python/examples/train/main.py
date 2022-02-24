@@ -112,6 +112,9 @@ input = {
 
 # Make the prediction!
 output = model.predict(input)
+model.to_path("training.tangram")
 
 # Print the output.
 print("Output:", output)
+print(output)
+print(type(output))

@@ -4,12 +4,13 @@ use std::num::NonZeroUsize;
 use tangram_zip::zip;
 
 /// `BinaryClassificationMetrics` computes common metrics used to evaluate binary classifiers at a number of classification thresholds.
+#[derive(Debug, Clone)]
 pub struct BinaryClassificationMetrics {
 	/// This field maps thresholds to the confusion matrix for prediction at that threshold.
 	confusion_matrices_for_thresholds: Vec<(f32, BinaryConfusionMatrix)>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct BinaryConfusionMatrix {
 	false_negatives: u64,
 	false_positives: u64,
