@@ -249,7 +249,10 @@ impl Table {
 										arrow2::datatypes::PrimitiveType::Float64 => {
 											TableColumnType::Number
 										}
-										_ => unimplemented!(),
+										primitive_type => {
+											dbg!(primitive_type);
+											todo!()
+										}
 									}
 								}
 								arrow2::datatypes::PhysicalType::Boolean => {

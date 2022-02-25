@@ -1,12 +1,9 @@
 from .tangram_python import *
 
-# TODO: handle missing imports?
-import pandas as pd
-import pyarrow as pa
-
 def train(
-  table,
+  table_train,
   target,
+  table_test=None,
   column_types=None,
   shuffle_enabled=None,
   shuffle_seed=None,
@@ -16,20 +13,54 @@ def train(
 	grid=None,
 	comparison_metric=None
 ):
-  if isinstance(table, pd.DataFrame):
-    table = pa.Table.from_pandas(table)
-  elif isinstance(table, pa.Table):
-    pass
-  pyarrow_arrays = []
-  for column in table.itercolumns():
+  is_valid_table_train = False
+  is_valid_table_test = if table_test is not None then False else True
+  try:
+    import pandas as pd
+    if isinstance(table_train, pd.DataFrame):
+      table_train = pa.Table.from_pandas(table_train)
+      is_valid_table_train = True
+    if table_test:
+      if isinstance(table_test, pd.DataFrame):
+        table_test = pa.Table.from_pandas(table_test)
+        is_valid_table_test = True
+  except:
+    # No Pandas
+  try:
+    import pyarrow as pa
+    if isinstance(table_train, pa.Table):
+      is_valid_table_train = True
+    if table_test:
+      if isinstance(table_test, pd.DataFrame):
+        is_valid_table_test = True
+  except:
+    # No PyArrow
+  if not is_valid_table_train:
+    raise Exception("Train table type not supported, use one of Pandas DataFrame or PyArrow Table")
+  if not is_valid_table_test:
+    raise Exception("Test table type not supported, use one of Pandas DataFrame or PyArrow Table")
+
+  pyarrow_arrays_train = []
+  for column in table_train.itercolumns():
     pyarrow_array = (
       column._name,
       column.combine_chunks()
     )
-    pyarrow_arrays.append(pyarrow_array)
+    pyarrow_arrays_train.append(pyarrow_array)
+  pyarrow_arrays_test = None
+  if table_test:
+    pyarrow_arrays_test = []
+    for column in table_test.itercolumns():
+      pyarrow_array = (
+        column._name,
+        column.combine_chunks()
+      )
+      pyarrow_arrays_test.append(pyarrow_array)
+
   model = train_inner(
-    pyarrow_arrays,
+    pyarrow_arrays_train,
     target,
+    pyarrow_arrays_test,
     column_types,
     shuffle_enabled,
     shuffle_seed,

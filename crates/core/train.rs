@@ -47,6 +47,11 @@ pub enum TrainingDataSource {
 		arrays: Vec<ArrayRef>,
 		column_names: Vec<String>,
 	},
+	ArrowArraysTrainAndTest {
+		arrays_train: Vec<ArrayRef>,
+		arrays_test: Vec<ArrayRef>,
+		column_names: Vec<String>,
+	},
 }
 
 pub struct Trainer {
@@ -105,6 +110,18 @@ impl Trainer {
 				column_names,
 			} => Dataset::Train(load_and_shuffle_dataset_arrow_arrays(
 				arrays,
+				column_names,
+				&config,
+				target_column_name,
+				handle_progress_event,
+			)?),
+			TrainingDataSource::ArrowArraysTrainAndTest {
+				arrays_train,
+				arrays_test,
+				column_names,
+			} => Dataset::TrainAndTest(load_and_shuffle_dataset_arrow_arrays_train_and_test(
+				arrays_train,
+				arrays_test,
 				column_names,
 				&config,
 				target_column_name,
@@ -859,6 +876,71 @@ fn column_types_from_config(config: &Config) -> Option<BTreeMap<String, TableCol
 			})
 			.collect(),
 	)
+}
+
+fn load_and_shuffle_dataset_arrow_arrays_train_and_test(
+	arrays_train: Vec<ArrayRef>,
+	arrays_test: Vec<ArrayRef>,
+	column_names: Vec<String>,
+	config: &Config,
+	target_column_name: &str,
+	handle_progress_event: &mut dyn FnMut(ProgressEvent),
+) -> Result<DatasetTrainAndTest> {
+	let column_types = column_types_from_config(config);
+	let mut table_train = tangram_table::Table::from_arrow_arrays(
+		column_names.clone(),
+		arrays_train,
+		tangram_table::Options {
+			column_types,
+			infer_options: Default::default(),
+			..Default::default()
+		},
+		&mut |_| {},
+	)
+	.unwrap();
+	// Force the column types for table_test to be the same as table_train.
+	let column_types = table_train
+		.columns()
+		.iter()
+		.map(|column| match column {
+			TableColumn::Unknown(column) => {
+				(column.name().to_owned().unwrap(), TableColumnType::Unknown)
+			}
+			TableColumn::Enum(column) => (
+				column.name().to_owned().unwrap(),
+				TableColumnType::Enum {
+					variants: column.variants().to_owned(),
+				},
+			),
+			TableColumn::Number(column) => {
+				(column.name().to_owned().unwrap(), TableColumnType::Number)
+			}
+			TableColumn::Text(column) => (column.name().to_owned().unwrap(), TableColumnType::Text),
+		})
+		.collect();
+	let mut table_test = tangram_table::Table::from_arrow_arrays(
+		column_names,
+		arrays_test,
+		tangram_table::Options {
+			column_types: Some(column_types),
+			infer_options: Default::default(),
+			..Default::default()
+		},
+		&mut |_| {},
+	)
+	.unwrap();
+	if table_train.columns().len() != table_test.columns().len() {
+		bail!("Training data and test data must contain the same number of columns.")
+	}
+	// Drop any rows with invalid data in the target column
+	drop_invalid_target_rows(&mut table_train, target_column_name, handle_progress_event);
+	drop_invalid_target_rows(&mut table_test, target_column_name, handle_progress_event);
+	shuffle_table(&mut table_train, config, handle_progress_event);
+	Ok(DatasetTrainAndTest {
+		table_train,
+		table_test,
+		comparison_fraction: config.dataset.comparison_fraction,
+	})
 }
 
 fn load_and_shuffle_dataset_arrow_arrays(

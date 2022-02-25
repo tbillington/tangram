@@ -1450,8 +1450,9 @@ impl<'a> Default for FromArrowOptions<'a> {
 
 #[pyfunction]
 fn train_inner(
-	arrow_arrays: Vec<(String, &PyAny)>,
+	arrow_arrays_train: Vec<(String, &PyAny)>,
 	target: String,
+	arrow_arrays_test: Option<Vec<(String, &PyAny)>>,
 	column_types: Option<Vec<ColumnType>>,
 	shuffle_enabled: Option<bool>,
 	shuffle_seed: Option<u64>,
@@ -1462,17 +1463,30 @@ fn train_inner(
 	comparison_metric: Option<ComparisonMetric>,
 ) -> PyResult<Model> {
 	// Construct the dataset
-	let column_names = arrow_arrays
+	let column_names = arrow_arrays_train
 		.iter()
 		.map(|(name, _)| name.to_owned())
 		.collect::<Vec<_>>();
-	let arrays = arrow_arrays
+	let arrays_train = arrow_arrays_train
 		.into_iter()
 		.map(|(_, array)| array_to_rust(array).unwrap())
 		.collect::<Vec<_>>();
-	let dataset = tangram_core::train::TrainingDataSource::ArrowArrays {
-		arrays,
-		column_names,
+	let arrays_test = arrow_arrays_test.map(|arrays| {
+		arrays
+			.into_iter()
+			.map(|(_, array)| array_to_rust(array).unwrap())
+			.collect::<Vec<_>>()
+	});
+	let dataset = match arrays_test {
+		Some(arrays_test) => tangram_core::train::TrainingDataSource::ArrowArraysTrainAndTest {
+			arrays_train,
+			arrays_test,
+			column_names,
+		},
+		None => tangram_core::train::TrainingDataSource::ArrowArrays {
+			arrays: arrays_train,
+			column_names,
+		},
 	};
 
 	// Construct the config options
@@ -1493,7 +1507,7 @@ fn train_inner(
 	let model = trainer
 		.test_and_assemble_model(train_grid_item_outputs, &mut |_| {})
 		.unwrap();
-	// TODO set the url!
+
 	let tangram_url = "https://app.tangram.dev".to_owned();
 	let tangram_url = tangram_url.parse().unwrap();
 
