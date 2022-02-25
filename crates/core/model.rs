@@ -12,7 +12,7 @@ use std::path::Path;
 use tangram_id::Id;
 use tangram_zip::zip;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct Model {
 	pub id: Id,
 	pub version: String,
@@ -20,14 +20,14 @@ pub struct Model {
 	pub inner: ModelInner,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub enum ModelInner {
 	Regressor(Regressor),
 	BinaryClassifier(BinaryClassifier),
 	MulticlassClassifier(MulticlassClassifier),
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct Regressor {
 	pub target_column_name: String,
 	pub train_row_count: usize,
