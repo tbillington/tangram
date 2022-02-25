@@ -12,7 +12,6 @@ use url::Url;
 fn tangram(py: Python, m: &PyModule) -> PyResult<()> {
 	m.add_class::<LoadModelOptions>()?;
 	m.add_class::<Model>()?;
-	m.add_class::<TrainingReport>()?;
 	m.add_class::<PredictOptions>()?;
 	m.add_class::<RegressionPredictOutput>()?;
 	m.add_class::<BinaryClassificationPredictOutput>()?;
