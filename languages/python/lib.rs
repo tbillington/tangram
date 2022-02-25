@@ -7,6 +7,7 @@ use url::Url;
 
 /**
 */
+
 #[pymodule]
 #[pyo3(name = "tangram_python")]
 fn tangram(py: Python, m: &PyModule) -> PyResult<()> {
@@ -286,7 +287,7 @@ impl Model {
 	/**
 	Retrieve the model's test metrics.
 	  */
-	fn test_metrics(&self) -> Metrics {
+	fn test_metrics(&self) -> PyResult<Metrics> {
 		match &self.core_model {
 			CoreModel::Path(path) => test_metrics_from_path(path),
 			CoreModel::Bytes(bytes) => test_metrics_from_bytes(bytes),
@@ -295,16 +296,22 @@ impl Model {
 	}
 }
 
-fn test_metrics_from_path(path: &str) -> Metrics {
-	todo!()
+fn test_metrics_from_path(path: &str) -> PyResult<Metrics> {
+	let file = std::fs::File::open(&path)?;
+	let bytes = unsafe { Mmap::map(&file)? };
+	let model = tangram_model::from_bytes(&bytes).map_err(TangramError)?;
+	let metrics = test_metrics_from_model_reader(model);
+	Ok(metrics)
 }
 
-fn test_metrics_from_bytes(bytes: &[u8]) -> Metrics {
-	todo!()
+fn test_metrics_from_bytes(bytes: &[u8]) -> PyResult<Metrics> {
+	let model = tangram_model::from_bytes(&bytes).map_err(TangramError)?;
+	let metrics = test_metrics_from_model_reader(model);
+	Ok(metrics)
 }
 
-fn test_metrics_from_model(model: &tangram_core::model::Model) -> Metrics {
-	match &model.inner {
+fn test_metrics_from_model(model: &tangram_core::model::Model) -> PyResult<Metrics> {
+	let metrics = match &model.inner {
 		tangram_core::model::ModelInner::Regressor(regressor) => {
 			Metrics::Regression((&regressor.test_metrics).into())
 		}
@@ -314,6 +321,97 @@ fn test_metrics_from_model(model: &tangram_core::model::Model) -> Metrics {
 		tangram_core::model::ModelInner::MulticlassClassifier(multiclass_classifier) => {
 			Metrics::MulticlassClassification((&multiclass_classifier.test_metrics).into())
 		}
+	};
+	Ok(metrics)
+}
+
+fn test_metrics_from_model_reader(reader: tangram_model::ModelReader) -> Metrics {
+	match reader.inner() {
+		tangram_model::ModelInnerReader::Regressor(reader) => {
+			let metrics = regressor_test_metrics_from_reader(reader.read());
+			Metrics::Regression(metrics)
+		}
+		tangram_model::ModelInnerReader::BinaryClassifier(reader) => {
+			let metrics = binary_classifier_test_metrics_from_reader(reader.read());
+			Metrics::BinaryClassification(metrics)
+		}
+		tangram_model::ModelInnerReader::MulticlassClassifier(reader) => {
+			let metrics = multiclass_classifier_test_metrics_from_reader(reader.read());
+			Metrics::MulticlassClassification(metrics)
+		}
+	}
+}
+
+fn regressor_test_metrics_from_reader(reader: tangram_model::RegressorReader) -> RegressionMetrics {
+	RegressionMetrics {
+		mse: reader.test_metrics().mse(),
+		rmse: reader.test_metrics().rmse(),
+		mae: reader.test_metrics().mae(),
+		r2: reader.test_metrics().r2(),
+	}
+}
+
+fn binary_classifier_test_metrics_from_reader(
+	reader: tangram_model::BinaryClassifierReader,
+) -> BinaryClassificationMetrics {
+	BinaryClassificationMetrics {
+		auc_roc: reader.test_metrics().auc_roc(),
+		default_threshold: threshold_metrics_from_reader(reader.test_metrics().default_threshold()),
+		thresholds: reader
+			.test_metrics()
+			.thresholds()
+			.iter()
+			.map(|reader| threshold_metrics_from_reader(reader))
+			.collect::<Vec<_>>(),
+	}
+}
+
+fn threshold_metrics_from_reader(
+	reader: tangram_model::BinaryClassificationMetricsForThresholdReader,
+) -> BinaryClassificationMetricsForThreshold {
+	BinaryClassificationMetricsForThreshold {
+		threshold: reader.threshold(),
+		true_positives: reader.true_positives(),
+		false_positives: reader.false_positives(),
+		true_negatives: reader.true_negatives(),
+		false_negatives: reader.false_negatives(),
+		accuracy: reader.accuracy(),
+		precision: reader.precision(),
+		recall: reader.recall(),
+		f1_score: reader.f1_score(),
+		true_positive_rate: reader.true_positive_rate(),
+		false_positive_rate: reader.false_positive_rate(),
+	}
+}
+
+fn multiclass_classifier_test_metrics_from_reader(
+	reader: tangram_model::MulticlassClassifierReader,
+) -> MulticlassClassificationMetrics {
+	let reader = reader.test_metrics();
+	MulticlassClassificationMetrics {
+		class_metrics: reader
+			.class_metrics()
+			.iter()
+			.map(class_metrics_from_reader)
+			.collect::<Vec<_>>(),
+		accuracy: reader.accuracy(),
+		precision_unweighted: reader.precision_unweighted(),
+		precision_weighted: reader.precision_weighted(),
+		recall_unweighted: reader.recall_unweighted(),
+		recall_weighted: reader.recall_weighted(),
+	}
+}
+
+fn class_metrics_from_reader(reader: tangram_model::ClassMetricsReader) -> ClassMetrics {
+	ClassMetrics {
+		true_positives: reader.true_positives(),
+		false_positives: reader.false_positives(),
+		true_negatives: reader.true_negatives(),
+		false_negatives: reader.false_negatives(),
+		accuracy: reader.accuracy(),
+		precision: reader.precision(),
+		recall: reader.recall(),
+		f1_score: reader.f1_score(),
 	}
 }
 
@@ -408,10 +506,10 @@ impl From<&tangram_metrics::RegressionMetricsOutput> for RegressionMetrics {
 
 impl From<&tangram_metrics::BinaryClassificationMetricsOutput> for BinaryClassificationMetrics {
 	fn from(metrics: &tangram_metrics::BinaryClassificationMetricsOutput) -> Self {
-		let default_threshold_metrics = (&metrics.thresholds[metrics.thresholds.len() / 2]).into();
+		let default_threshold = (&metrics.thresholds[metrics.thresholds.len() / 2]).into();
 		BinaryClassificationMetrics {
 			auc_roc: metrics.auc_roc_approx,
-			default_threshold_metrics,
+			default_threshold,
 			thresholds: metrics
 				.thresholds
 				.iter()
@@ -422,10 +520,10 @@ impl From<&tangram_metrics::BinaryClassificationMetricsOutput> for BinaryClassif
 }
 
 impl From<&tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
-	for BinaryClassificationMetricsOutputForThreshold
+	for BinaryClassificationMetricsForThreshold
 {
 	fn from(metrics: &tangram_metrics::BinaryClassificationMetricsOutputForThreshold) -> Self {
-		BinaryClassificationMetricsOutputForThreshold {
+		BinaryClassificationMetricsForThreshold {
 			threshold: metrics.threshold,
 			true_positives: metrics.true_positives,
 			false_positives: metrics.false_positives,
@@ -458,15 +556,15 @@ pub struct BinaryClassificationMetrics {
 	pub auc_roc: f32,
 	/// This contains metrics specific to the default classification threshold of 0.5.
 	#[pyo3(get)]
-	pub default_threshold_metrics: BinaryClassificationMetricsOutputForThreshold,
+	pub default_threshold: BinaryClassificationMetricsForThreshold,
 	/// This contains metrics specific to each classification threshold.
 	#[pyo3(get)]
-	pub thresholds: Vec<BinaryClassificationMetricsOutputForThreshold>,
+	pub thresholds: Vec<BinaryClassificationMetricsForThreshold>,
 }
 
 #[derive(Clone, Debug, serde::Serialize)]
 #[pyclass]
-pub struct BinaryClassificationMetricsOutputForThreshold {
+pub struct BinaryClassificationMetricsForThreshold {
 	/// The classification threshold.
 	#[pyo3(get)]
 	pub threshold: f32,
