@@ -31,16 +31,17 @@ def train(
     # No Pandas
     pass
 
-  try:
-    import pyarrow as pa
-    if isinstance(table_train, pa.Table):
-      is_valid_table_train = True
-    if table_test:
-      if isinstance(table_test, pd.DataFrame):
-        is_valid_table_test = True
-  except:
-    # No PyArrow
-    pass
+  if not is_valid_table_train:
+    try:
+      import pyarrow as pa
+      if isinstance(table_train, pa.Table):
+        is_valid_table_train = True
+      if table_test:
+        if isinstance(table_test, pd.DataFrame):
+          is_valid_table_test = True
+    except:
+      # No PyArrow
+      pass
 
   if not is_valid_table_train:
     raise Exception("Train table type not supported, use one of Pandas DataFrame or PyArrow Table")
