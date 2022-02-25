@@ -27,6 +27,7 @@ fn tangram(py: Python, m: &PyModule) -> PyResult<()> {
 	m.add_class::<BagOfWordsCosineSimilarityFeatureContribution>()?;
 	m.add_class::<WordEmbeddingFeatureContribution>()?;
 	m.add_function(wrap_pyfunction!(train_inner, m)?)?;
+	m.add("Metrics", metrics(py)?)?;
 	m.add("PredictInput", predict_input(py)?)?;
 	m.add("PredictOutput", predict_output(py)?)?;
 	m.add("FeatureContributionEntry", feature_contribution_entry(py)?)?;
@@ -1161,6 +1162,17 @@ fn predict_output(py: Python) -> PyResult<PyObject> {
 		MulticlassClassificationPredictOutput::type_object(py),
 	))?;
 	Ok(predict_output.into())
+}
+
+fn metrics(py: Python) -> PyResult<PyObject> {
+	let typing = py.import("typing")?;
+	let py_union = typing.getattr("Union")?;
+	let metrics = py_union.get_item((
+		RegressionMetrics::type_object(py),
+		BinaryClassificationMetrics::type_object(py),
+		MulticlassClassificationMetrics::type_object(py),
+	))?;
+	Ok(metrics.into())
 }
 
 fn feature_contribution_entry(py: Python) -> PyResult<PyObject> {
