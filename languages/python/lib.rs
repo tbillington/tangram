@@ -499,8 +499,13 @@ pub struct RegressionMetrics {
 }
 
 impl From<&tangram_metrics::RegressionMetricsOutput> for RegressionMetrics {
-	fn from(_: &tangram_metrics::RegressionMetricsOutput) -> Self {
-		todo!()
+	fn from(metrics: &tangram_metrics::RegressionMetricsOutput) -> Self {
+		RegressionMetrics {
+			mse: metrics.mse,
+			rmse: metrics.rmse,
+			mae: metrics.mae,
+			r2: metrics.r2,
+		}
 	}
 }
 
@@ -542,8 +547,34 @@ impl From<&tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
 impl From<&tangram_metrics::MulticlassClassificationMetricsOutput>
 	for MulticlassClassificationMetrics
 {
-	fn from(_: &tangram_metrics::MulticlassClassificationMetricsOutput) -> Self {
-		todo!()
+	fn from(metrics: &tangram_metrics::MulticlassClassificationMetricsOutput) -> Self {
+		MulticlassClassificationMetrics {
+			class_metrics: metrics
+				.class_metrics
+				.iter()
+				.map(|class_metrics| class_metrics.into())
+				.collect::<Vec<_>>(),
+			accuracy: metrics.accuracy,
+			precision_unweighted: metrics.precision_unweighted,
+			precision_weighted: metrics.precision_weighted,
+			recall_unweighted: metrics.recall_unweighted,
+			recall_weighted: metrics.recall_weighted,
+		}
+	}
+}
+
+impl From<&tangram_metrics::ClassMetrics> for ClassMetrics {
+	fn from(metrics: &tangram_metrics::ClassMetrics) -> Self {
+		ClassMetrics {
+			true_positives: metrics.true_positives,
+			false_positives: metrics.false_positives,
+			true_negatives: metrics.true_negatives,
+			false_negatives: metrics.false_negatives,
+			accuracy: metrics.accuracy,
+			precision: metrics.precision,
+			recall: metrics.recall,
+			f1_score: metrics.f1_score,
+		}
 	}
 }
 
