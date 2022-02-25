@@ -282,7 +282,7 @@ impl Model {
 	/**
 	Retrieve the model's test metrics.
 		*/
-	fn test_metrics(&self) -> String {
+	fn test_metrics(&self) -> Metrics {
 		match &self.core_model {
 			CoreModel::Path(path) => test_metrics_from_path(path),
 			CoreModel::Bytes(bytes) => test_metrics_from_bytes(bytes),
@@ -291,24 +291,24 @@ impl Model {
 	}
 }
 
-fn test_metrics_from_path(path: &str) -> String {
+fn test_metrics_from_path(path: &str) -> Metrics {
 	todo!()
 }
 
-fn test_metrics_from_bytes(bytes: &[u8]) -> String {
+fn test_metrics_from_bytes(bytes: &[u8]) -> Metrics {
 	todo!()
 }
 
-fn test_metrics_from_model(model: &tangram_core::model::Model) -> String {
-	match model.inner {
+fn test_metrics_from_model(model: &tangram_core::model::Model) -> Metrics {
+	match &model.inner {
 		tangram_core::model::ModelInner::Regressor(regressor) => {
-			serde_json::to_string(&regressor.test_metrics).unwrap()
+			Metrics::Regression(regressor.test_metrics.into())
 		}
 		tangram_core::model::ModelInner::BinaryClassifier(binary_classifier) => {
-			serde_json::to_string(&binary_classifier.test_metrics).unwrap()
+			Metrics::BinaryClassification(binary_classifier.test_metrics.into())
 		}
 		tangram_core::model::ModelInner::MulticlassClassifier(multiclass_classifier) => {
-			serde_json::to_string(&multiclass_classifier.test_metrics).unwrap()
+			Metrics::MulticlassClassification(multiclass_classifier.test_metrics.into())
 		}
 	}
 }
@@ -363,7 +363,7 @@ impl Model {
 
 #[derive(Debug, serde::Serialize)]
 #[serde(untagged)]
-enum TestMetrics {
+enum Metrics {
 	Regression(RegressionMetrics),
 	BinaryClassification(BinaryClassificationMetrics),
 	MulticlassClassification(MulticlassClassificationMetrics),
@@ -379,6 +379,53 @@ pub struct RegressionMetrics {
 	pub mae: f32,
 	/// The r-squared value. https://en.wikipedia.org/wiki/Coefficient_of_determination.
 	pub r2: f32,
+}
+
+impl From<tangram_metrics::RegressionMetricsOutput> for RegressionMetrics {
+	fn from(_: tangram_metrics::RegressionMetricsOutput) -> Self {
+		todo!()
+	}
+}
+
+impl From<tangram_metrics::BinaryClassificationMetricsOutput> for BinaryClassificationMetrics {
+	fn from(metrics: tangram_metrics::BinaryClassificationMetricsOutput) -> Self {
+		BinaryClassificationMetrics {
+			auc_roc_approx: metrics.auc_roc_approx,
+			thresholds: metrics
+				.thresholds
+				.into_iter()
+				.map(Into::into)
+				.collect::<Vec<_>>(),
+		}
+	}
+}
+
+impl From<tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
+	for BinaryClassificationMetricsOutputForThreshold
+{
+	fn from(metrics: tangram_metrics::BinaryClassificationMetricsOutputForThreshold) -> Self {
+		BinaryClassificationMetricsOutputForThreshold {
+			threshold: metrics.threshold,
+			true_positives: metrics.true_positives,
+			false_positives: metrics.false_positives,
+			true_negatives: metrics.true_negatives,
+			false_negatives: metrics.false_negatives,
+			accuracy: metrics.accuracy,
+			precision: metrics.precision,
+			recall: metrics.recall,
+			f1_score: metrics.f1_score,
+			true_positive_rate: metrics.true_positive_rate,
+			false_positive_rate: metrics.false_positive_rate,
+		}
+	}
+}
+
+impl From<tangram_metrics::MulticlassClassificationMetricsOutput>
+	for MulticlassClassificationMetrics
+{
+	fn from(_: tangram_metrics::MulticlassClassificationMetricsOutput) -> Self {
+		todo!()
+	}
 }
 
 #[derive(Debug, serde::Serialize)]

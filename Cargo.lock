@@ -4764,6 +4764,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tangram_core",
+ "tangram_metrics",
  "tangram_model",
  "tangram_table",
  "url",
