@@ -12,13 +12,12 @@ table_train = pd.read_csv("./adult_train.csv")
 # Load the csv into a pandas dataframe
 table_test = pd.read_csv("./adult_test.csv")
 
-# Load the csv into a pandas dataframe
-table = pd.read_csv("./adult.csv")
 
 # Train a model!
 model = tangram.train(
-  table,
+  table_train,
   "income",
+  table_test,
   autogrid=None,
 	grid=[
     {
@@ -55,4 +54,4 @@ output = model.predict(input)
 print("Output:", output)
 
 # Print the output.
-print("Metrics:", metrics)
+print("Metrics:", model.test_metrics().default_threshold.accuracy)

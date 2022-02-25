@@ -20,10 +20,11 @@ def train(
     is_valid_table_test = False
   try:
     import pandas as pd
+    import pyarrow as pa
     if isinstance(table_train, pd.DataFrame):
       table_train = pa.Table.from_pandas(table_train)
       is_valid_table_train = True
-    if table_test:
+    if table_test is not None:
       if isinstance(table_test, pd.DataFrame):
         table_test = pa.Table.from_pandas(table_test)
         is_valid_table_test = True
@@ -36,7 +37,7 @@ def train(
       import pyarrow as pa
       if isinstance(table_train, pa.Table):
         is_valid_table_train = True
-      if table_test:
+      if table_test is not None:
         if isinstance(table_test, pd.DataFrame):
           is_valid_table_test = True
     except:
