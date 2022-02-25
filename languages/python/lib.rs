@@ -451,8 +451,10 @@ impl From<&tangram_metrics::MulticlassClassificationMetricsOutput>
 /// BinaryClassificationMetrics contains common metrics used to evaluate binary classifiers.
 pub struct BinaryClassificationMetrics {
 	/// The area under the receiver operating characteristic curve is computed using a fixed number of thresholds equal to `n_thresholds`.
+	#[pyo3(get)]
 	pub auc_roc_approx: f32,
 	/// This contains metrics specific to each classification threshold.
+	#[pyo3(get)]
 	pub thresholds: Vec<BinaryClassificationMetricsOutputForThreshold>,
 }
 
