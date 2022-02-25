@@ -14,7 +14,10 @@ def train(
 	comparison_metric=None
 ):
   is_valid_table_train = False
-  is_valid_table_test = if table_test is not None then False else True
+  if table_test is None:
+    is_valid_table_test = True
+  else:
+    is_valid_table_test = False
   try:
     import pandas as pd
     if isinstance(table_train, pd.DataFrame):
@@ -26,6 +29,8 @@ def train(
         is_valid_table_test = True
   except:
     # No Pandas
+    pass
+
   try:
     import pyarrow as pa
     if isinstance(table_train, pa.Table):
@@ -35,10 +40,12 @@ def train(
         is_valid_table_test = True
   except:
     # No PyArrow
+    pass
+
   if not is_valid_table_train:
     raise Exception("Train table type not supported, use one of Pandas DataFrame or PyArrow Table")
   if not is_valid_table_test:
-    raise Exception("Test table type not supported, use one of Pandas DataFrame or PyArrow Table")
+    raise Exception("Test table type not supported, should be same as train table type and supports one of Pandas DataFrame or PyArrow Table")
 
   pyarrow_arrays_train = []
   for column in table_train.itercolumns():

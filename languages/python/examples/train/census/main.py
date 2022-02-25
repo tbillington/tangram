@@ -22,12 +22,12 @@ model = tangram.train(
   autogrid=None,
 	grid=[
     {
-      "type": "tree"
+      "type": "tree",
       "learning_rate": 0.01,
       "max_rounds": 1500,
       "model": "tree"
     }
-  ],
+  ]
 )
 
 # Create an example input matching the schema of the CSV file the model was trained on. Here the data is just hard-coded, but in your application you will probably get this from a database or user input.
