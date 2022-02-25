@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use num::ToPrimitive;
+use serde::Serialize;
 use std::num::NonZeroUsize;
 use tangram_zip::zip;
 
@@ -40,7 +41,7 @@ pub struct BinaryClassificationMetricsInput<'a> {
 }
 
 /// BinaryClassificationMetrics contains common metrics used to evaluate binary classifiers.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BinaryClassificationMetricsOutput {
 	/// The area under the receiver operating characteristic curve is computed using a fixed number of thresholds equal to `n_thresholds` which is passed to [`BinaryClassificationMetrics::new`].
 	pub auc_roc_approx: f32,
@@ -49,7 +50,7 @@ pub struct BinaryClassificationMetricsOutput {
 }
 
 /// The output from [`BinaryClassificationMetrics`].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BinaryClassificationMetricsOutputForThreshold {
 	/// The classification threshold.
 	pub threshold: f32,

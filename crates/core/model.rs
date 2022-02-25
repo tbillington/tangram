@@ -7,11 +7,12 @@ use crate::{
 };
 use anyhow::Result;
 use num::ToPrimitive;
+use serde::Serialize;
 use std::path::Path;
 use tangram_id::Id;
 use tangram_zip::zip;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Model {
 	pub id: Id,
 	pub version: String,
@@ -19,14 +20,14 @@ pub struct Model {
 	pub inner: ModelInner,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum ModelInner {
 	Regressor(Regressor),
 	BinaryClassifier(BinaryClassifier),
 	MulticlassClassifier(MulticlassClassifier),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Regressor {
 	pub target_column_name: String,
 	pub train_row_count: usize,
@@ -196,7 +197,7 @@ pub enum ComparisonMetric {
 	MulticlassClassification(MulticlassClassificationComparisonMetric),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum Metrics {
 	Regression(tangram_metrics::RegressionMetricsOutput),
 	BinaryClassification(tangram_metrics::BinaryClassificationMetricsOutput),

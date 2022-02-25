@@ -4706,6 +4706,7 @@ dependencies = [
  "itertools",
  "ndarray",
  "num",
+ "serde",
  "tangram_zip",
 ]
 

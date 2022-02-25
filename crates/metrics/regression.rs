@@ -1,5 +1,6 @@
 use super::mean_variance::{MeanVariance, MeanVarianceOutput};
 use num::ToPrimitive;
+use serde::Serialize;
 use tangram_zip::zip;
 
 /// RegressionMetrics computes metrics used to evaluate regressors.
@@ -17,7 +18,7 @@ pub struct RegressionMetricsInput<'a> {
 }
 
 /// The output from [`RegressionMetrics`].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RegressionMetricsOutput {
 	/// The mean squared error is equal to the mean of the squared errors. For a given example, the error is the difference between the true value and the model's predicted value.
 	pub mse: f32,

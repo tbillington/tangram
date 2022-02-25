@@ -9,11 +9,8 @@ from typing import cast
 # # Load the csv into a pandas dataframe
 # table = pd.read_csv("./heart_disease.csv")
 
-# Load the csv into a pandas dataframe
+# # Load the csv into a pyarrow dataframe
 table = pa.csv.read_csv("./heart_disease.csv")
-
-# Load the csv into a pandas dataframe
-table = csv.read_csv("./heart_disease.csv")
 
 # Train a model!
 model = tangram.train(
@@ -112,9 +109,6 @@ input = {
 
 # Make the prediction!
 output = model.predict(input)
-model.to_path("training.tangram")
 
 # Print the output.
 print("Output:", output)
-print(output)
-print(type(output))

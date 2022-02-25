@@ -12,6 +12,7 @@ use url::Url;
 fn tangram(py: Python, m: &PyModule) -> PyResult<()> {
 	m.add_class::<LoadModelOptions>()?;
 	m.add_class::<Model>()?;
+	m.add_class::<TrainingReport>()?;
 	m.add_class::<PredictOptions>()?;
 	m.add_class::<RegressionPredictOutput>()?;
 	m.add_class::<BinaryClassificationPredictOutput>()?;
@@ -278,6 +279,39 @@ impl Model {
 		let events = self.log_queue.drain(0..self.log_queue.len()).collect();
 		self.log_events(events)
 	}
+
+	/**
+	Retrieve the model's test metrics.
+		*/
+	fn test_metrics(&self) -> String {
+		match &self.core_model {
+			CoreModel::Path(path) => test_metrics_from_path(path),
+			CoreModel::Bytes(bytes) => test_metrics_from_bytes(bytes),
+			CoreModel::Model(model) => test_metrics_from_model(model),
+		}
+	}
+}
+
+fn test_metrics_from_path(path: &str) -> String {
+	todo!()
+}
+
+fn test_metrics_from_bytes(bytes: &[u8]) -> String {
+	todo!()
+}
+
+fn test_metrics_from_model(model: &tangram_core::model::Model) -> String {
+	match model.inner {
+		tangram_core::model::ModelInner::Regressor(regressor) => {
+			serde_json::to_string(&regressor.test_metrics).unwrap()
+		}
+		tangram_core::model::ModelInner::BinaryClassifier(binary_classifier) => {
+			serde_json::to_string(&binary_classifier.test_metrics).unwrap()
+		}
+		tangram_core::model::ModelInner::MulticlassClassifier(multiclass_classifier) => {
+			serde_json::to_string(&multiclass_classifier.test_metrics).unwrap()
+		}
+	}
 }
 
 impl Model {
@@ -326,6 +360,98 @@ impl Model {
 			true_value,
 		}
 	}
+}
+
+#[derive(Debug, serde::Serialize)]
+#[serde(untagged)]
+enum TestMetrics {
+	Regression(RegressionMetrics),
+	BinaryClassification(BinaryClassificationMetrics),
+	MulticlassClassification(MulticlassClassificationMetrics),
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct RegressionMetrics {
+	/// The mean squared error is equal to the mean of the squared errors. For a given example, the error is the difference between the true value and the model's predicted value.
+	pub mse: f32,
+	/// The root mean squared error is equal to the square root of the mean squared error.
+	pub rmse: f32,
+	/// The mean of the absolute value of the errors.
+	pub mae: f32,
+	/// The r-squared value. https://en.wikipedia.org/wiki/Coefficient_of_determination.
+	pub r2: f32,
+}
+
+#[derive(Debug, serde::Serialize)]
+/// BinaryClassificationMetrics contains common metrics used to evaluate binary classifiers.
+pub struct BinaryClassificationMetrics {
+	/// The area under the receiver operating characteristic curve is computed using a fixed number of thresholds equal to `n_thresholds`.
+	pub auc_roc_approx: f32,
+	/// This contains metrics specific to each classification threshold.
+	pub thresholds: Vec<BinaryClassificationMetricsOutputForThreshold>,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct BinaryClassificationMetricsOutputForThreshold {
+	/// The classification threshold.
+	pub threshold: f32,
+	/// The total number of examples whose label is equal to the positive class that the model predicted as belonging to the positive class.
+	pub true_positives: u64,
+	/// The total number of examples whose label is equal to the negative class that the model predicted as belonging to the positive class.
+	pub false_positives: u64,
+	/// The total number of examples whose label is equal to the negative class that the model predicted as belonging to the negative class.
+	pub true_negatives: u64,
+	/// The total number of examples whose label is equal to the positive class that the model predicted as belonging to the negative class.
+	pub false_negatives: u64,
+	/// The fraction of examples that were correctly classified.
+	pub accuracy: f32,
+	/// The precision is the fraction of examples the model predicted as belonging to the positive class whose label is actually the positive class. true_positives / (true_positives + false_positives). See [Precision and Recall](https://en.wikipedia.org/wiki/Precision_and_recall).
+	pub precision: Option<f32>,
+	/// The recall is the fraction of examples whose label is equal to the positive class that the model predicted as belonging to the positive class. `recall = true_positives / (true_positives + false_negatives)`.
+	pub recall: Option<f32>,
+	/// The f1 score is the harmonic mean of the precision and the recall. See [F1 Score](https://en.wikipedia.org/wiki/F1_score).
+	pub f1_score: Option<f32>,
+	/// The true positive rate is the fraction of examples whose label is equal to the positive class that the model predicted as belonging to the positive class. Also known as the recall. See [Sensitivity and Specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity).
+	pub true_positive_rate: f32,
+	/// The false positive rate is the fraction of examples whose label is equal to the negative class that the model falsely predicted as belonging to the positive class. false_positives / (false_positives + true_negatives). See [False Positive Rate](https://en.wikipedia.org/wiki/False_positive_rate)
+	pub false_positive_rate: f32,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct MulticlassClassificationMetrics {
+	/// The class metrics contain class specific metrics.
+	pub class_metrics: Vec<ClassMetrics>,
+	/// The accuracy is the fraction of all of the predictions that are correct.
+	pub accuracy: f32,
+	/// The unweighted precision equal to the mean of each class's precision.
+	pub precision_unweighted: f32,
+	/// The weighted precision is a weighted mean of each class's precision weighted by the fraction of the total examples in the class.
+	pub precision_weighted: f32,
+	/// The unweighted recall equal to the mean of each class's recall.
+	pub recall_unweighted: f32,
+	/// The weighted recall is a weighted mean of each class's recall weighted by the fraction of the total examples in the class.
+	pub recall_weighted: f32,
+}
+
+#[derive(Debug, serde::Serialize)]
+/// ClassMetrics are class specific metrics used to evaluate the model's performance on each individual class.
+pub struct ClassMetrics {
+	/// This is the total number of examples whose label is equal to this class that the model predicted as belonging to this class.
+	pub true_positives: u64,
+	/// This is the total number of examples whose label is *not* equal to this class that the model predicted as belonging to this class.
+	pub false_positives: u64,
+	/// This is the total number of examples whose label is *not* equal to this class that the model predicted as *not* belonging to this class.
+	pub true_negatives: u64,
+	/// This is the total number of examples whose label is equal to this class that the model predicted as *not* belonging to this class.
+	pub false_negatives: u64,
+	/// The accuracy is the fraction of examples of this class that were correctly classified.
+	pub accuracy: f32,
+	/// The precision is the fraction of examples the model predicted as belonging to this class whose label is actually equal to this class. `precision = true_positives / (true_positives + false_positives)`. See [Precision and Recall](https://en.wikipedia.org/wiki/Precision_and_recall).
+	pub precision: f32,
+	/// The recall is the fraction of examples in the dataset whose label is equal to this class that the model predicted as equal to this class. `recall = true_positives / (true_positives + false_negatives)`.
+	pub recall: f32,
+	/// The f1 score is the harmonic mean of the precision and the recall. See [F1 Score](https://en.wikipedia.org/wiki/F1_score).
+	pub f1_score: f32,
 }
 
 /**
