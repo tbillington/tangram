@@ -1214,6 +1214,10 @@ repr!(RegressionPredictOutput);
 repr!(BinaryClassificationPredictOutput);
 repr!(MulticlassClassificationPredictOutput);
 
+repr!(RegressionMetrics);
+repr!(BinaryClassificationMetrics);
+repr!(MulticlassClassificationMetrics);
+
 struct TangramError(anyhow::Error);
 
 impl std::fmt::Display for TangramError {

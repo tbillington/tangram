@@ -84,12 +84,6 @@ class PredictOptions:
         compute_feature_contributions: Optional[bool],
     ) -> PredictOptions: ...
 
-PredictOutput = Union[
-    RegressionPredictOutput,
-    BinaryClassificationPredictOutput,
-    MulticlassClassificationPredictOutput,
-]
-
 Metrics = Union[
     RegressionMetrics,
     BinaryClassificationMetrics,
@@ -136,6 +130,16 @@ class ClassMetrics:
     precision: float
     recall: float
     f1_score: float
+
+PredictOutput = Union[
+    RegressionPredictOutput,
+    BinaryClassificationPredictOutput,
+    MulticlassClassificationPredictOutput,
+]
+
+class RegresionPredictOutput:
+    value: float
+    feature_contributions: FeatureContributions
 
 class BinaryClassificationPredictOutput:
     class_name: str
