@@ -12,6 +12,9 @@ use url::Url;
 fn tangram(py: Python, m: &PyModule) -> PyResult<()> {
 	m.add_class::<LoadModelOptions>()?;
 	m.add_class::<Model>()?;
+	m.add_class::<RegressionMetrics>()?;
+	m.add_class::<BinaryClassificationMetrics>()?;
+	m.add_class::<MulticlassClassificationMetrics>()?;
 	m.add_class::<PredictOptions>()?;
 	m.add_class::<RegressionPredictOutput>()?;
 	m.add_class::<BinaryClassificationPredictOutput>()?;
@@ -302,13 +305,13 @@ fn test_metrics_from_bytes(bytes: &[u8]) -> Metrics {
 fn test_metrics_from_model(model: &tangram_core::model::Model) -> Metrics {
 	match &model.inner {
 		tangram_core::model::ModelInner::Regressor(regressor) => {
-			Metrics::Regression(regressor.test_metrics.into())
+			Metrics::Regression((&regressor.test_metrics).into())
 		}
 		tangram_core::model::ModelInner::BinaryClassifier(binary_classifier) => {
-			Metrics::BinaryClassification(binary_classifier.test_metrics.into())
+			Metrics::BinaryClassification((&binary_classifier.test_metrics).into())
 		}
 		tangram_core::model::ModelInner::MulticlassClassifier(multiclass_classifier) => {
-			Metrics::MulticlassClassification(multiclass_classifier.test_metrics.into())
+			Metrics::MulticlassClassification((&multiclass_classifier.test_metrics).into())
 		}
 	}
 }
@@ -369,7 +372,18 @@ enum Metrics {
 	MulticlassClassification(MulticlassClassificationMetrics),
 }
 
-#[derive(Debug, serde::Serialize)]
+impl IntoPy<PyObject> for Metrics {
+	fn into_py(self, py: Python) -> PyObject {
+		match self {
+			Metrics::Regression(s) => s.into_py(py),
+			Metrics::BinaryClassification(s) => s.into_py(py),
+			Metrics::MulticlassClassification(s) => s.into_py(py),
+		}
+	}
+}
+
+#[derive(Clone, Debug, serde::Serialize)]
+#[pyclass]
 pub struct RegressionMetrics {
 	/// The mean squared error is equal to the mean of the squared errors. For a given example, the error is the difference between the true value and the model's predicted value.
 	pub mse: f32,
@@ -381,29 +395,29 @@ pub struct RegressionMetrics {
 	pub r2: f32,
 }
 
-impl From<tangram_metrics::RegressionMetricsOutput> for RegressionMetrics {
-	fn from(_: tangram_metrics::RegressionMetricsOutput) -> Self {
+impl From<&tangram_metrics::RegressionMetricsOutput> for RegressionMetrics {
+	fn from(_: &tangram_metrics::RegressionMetricsOutput) -> Self {
 		todo!()
 	}
 }
 
-impl From<tangram_metrics::BinaryClassificationMetricsOutput> for BinaryClassificationMetrics {
-	fn from(metrics: tangram_metrics::BinaryClassificationMetricsOutput) -> Self {
+impl From<&tangram_metrics::BinaryClassificationMetricsOutput> for BinaryClassificationMetrics {
+	fn from(metrics: &tangram_metrics::BinaryClassificationMetricsOutput) -> Self {
 		BinaryClassificationMetrics {
 			auc_roc_approx: metrics.auc_roc_approx,
 			thresholds: metrics
 				.thresholds
-				.into_iter()
+				.iter()
 				.map(Into::into)
 				.collect::<Vec<_>>(),
 		}
 	}
 }
 
-impl From<tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
+impl From<&tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
 	for BinaryClassificationMetricsOutputForThreshold
 {
-	fn from(metrics: tangram_metrics::BinaryClassificationMetricsOutputForThreshold) -> Self {
+	fn from(metrics: &tangram_metrics::BinaryClassificationMetricsOutputForThreshold) -> Self {
 		BinaryClassificationMetricsOutputForThreshold {
 			threshold: metrics.threshold,
 			true_positives: metrics.true_positives,
@@ -420,15 +434,16 @@ impl From<tangram_metrics::BinaryClassificationMetricsOutputForThreshold>
 	}
 }
 
-impl From<tangram_metrics::MulticlassClassificationMetricsOutput>
+impl From<&tangram_metrics::MulticlassClassificationMetricsOutput>
 	for MulticlassClassificationMetrics
 {
-	fn from(_: tangram_metrics::MulticlassClassificationMetricsOutput) -> Self {
+	fn from(_: &tangram_metrics::MulticlassClassificationMetricsOutput) -> Self {
 		todo!()
 	}
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
+#[pyclass]
 /// BinaryClassificationMetrics contains common metrics used to evaluate binary classifiers.
 pub struct BinaryClassificationMetrics {
 	/// The area under the receiver operating characteristic curve is computed using a fixed number of thresholds equal to `n_thresholds`.
@@ -437,7 +452,8 @@ pub struct BinaryClassificationMetrics {
 	pub thresholds: Vec<BinaryClassificationMetricsOutputForThreshold>,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
+#[pyclass]
 pub struct BinaryClassificationMetricsOutputForThreshold {
 	/// The classification threshold.
 	pub threshold: f32,
@@ -463,7 +479,8 @@ pub struct BinaryClassificationMetricsOutputForThreshold {
 	pub false_positive_rate: f32,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
+#[pyclass]
 struct MulticlassClassificationMetrics {
 	/// The class metrics contain class specific metrics.
 	pub class_metrics: Vec<ClassMetrics>,
@@ -479,7 +496,7 @@ struct MulticlassClassificationMetrics {
 	pub recall_weighted: f32,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
 /// ClassMetrics are class specific metrics used to evaluate the model's performance on each individual class.
 pub struct ClassMetrics {
 	/// This is the total number of examples whose label is equal to this class that the model predicted as belonging to this class.
