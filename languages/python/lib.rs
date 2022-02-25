@@ -386,12 +386,16 @@ impl IntoPy<PyObject> for Metrics {
 #[pyclass]
 pub struct RegressionMetrics {
 	/// The mean squared error is equal to the mean of the squared errors. For a given example, the error is the difference between the true value and the model's predicted value.
+	#[pyo3(get)]
 	pub mse: f32,
 	/// The root mean squared error is equal to the square root of the mean squared error.
+	#[pyo3(get)]
 	pub rmse: f32,
 	/// The mean of the absolute value of the errors.
+	#[pyo3(get)]
 	pub mae: f32,
 	/// The r-squared value. https://en.wikipedia.org/wiki/Coefficient_of_determination.
+	#[pyo3(get)]
 	pub r2: f32,
 }
 
@@ -456,64 +460,90 @@ pub struct BinaryClassificationMetrics {
 #[pyclass]
 pub struct BinaryClassificationMetricsOutputForThreshold {
 	/// The classification threshold.
+	#[pyo3(get)]
 	pub threshold: f32,
 	/// The total number of examples whose label is equal to the positive class that the model predicted as belonging to the positive class.
+	#[pyo3(get)]
 	pub true_positives: u64,
 	/// The total number of examples whose label is equal to the negative class that the model predicted as belonging to the positive class.
+	#[pyo3(get)]
 	pub false_positives: u64,
 	/// The total number of examples whose label is equal to the negative class that the model predicted as belonging to the negative class.
+	#[pyo3(get)]
 	pub true_negatives: u64,
 	/// The total number of examples whose label is equal to the positive class that the model predicted as belonging to the negative class.
+	#[pyo3(get)]
 	pub false_negatives: u64,
 	/// The fraction of examples that were correctly classified.
+	#[pyo3(get)]
 	pub accuracy: f32,
 	/// The precision is the fraction of examples the model predicted as belonging to the positive class whose label is actually the positive class. true_positives / (true_positives + false_positives). See [Precision and Recall](https://en.wikipedia.org/wiki/Precision_and_recall).
+	#[pyo3(get)]
 	pub precision: Option<f32>,
 	/// The recall is the fraction of examples whose label is equal to the positive class that the model predicted as belonging to the positive class. `recall = true_positives / (true_positives + false_negatives)`.
+	#[pyo3(get)]
 	pub recall: Option<f32>,
 	/// The f1 score is the harmonic mean of the precision and the recall. See [F1 Score](https://en.wikipedia.org/wiki/F1_score).
+	#[pyo3(get)]
 	pub f1_score: Option<f32>,
 	/// The true positive rate is the fraction of examples whose label is equal to the positive class that the model predicted as belonging to the positive class. Also known as the recall. See [Sensitivity and Specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity).
+	#[pyo3(get)]
 	pub true_positive_rate: f32,
 	/// The false positive rate is the fraction of examples whose label is equal to the negative class that the model falsely predicted as belonging to the positive class. false_positives / (false_positives + true_negatives). See [False Positive Rate](https://en.wikipedia.org/wiki/False_positive_rate)
+	#[pyo3(get)]
 	pub false_positive_rate: f32,
 }
 
-#[derive(Clone, Debug, serde::Serialize)]
 #[pyclass]
+#[derive(Clone, Debug, serde::Serialize)]
 struct MulticlassClassificationMetrics {
 	/// The class metrics contain class specific metrics.
+	#[pyo3(get)]
 	pub class_metrics: Vec<ClassMetrics>,
 	/// The accuracy is the fraction of all of the predictions that are correct.
+	#[pyo3(get)]
 	pub accuracy: f32,
 	/// The unweighted precision equal to the mean of each class's precision.
+	#[pyo3(get)]
 	pub precision_unweighted: f32,
 	/// The weighted precision is a weighted mean of each class's precision weighted by the fraction of the total examples in the class.
+	#[pyo3(get)]
 	pub precision_weighted: f32,
 	/// The unweighted recall equal to the mean of each class's recall.
+	#[pyo3(get)]
 	pub recall_unweighted: f32,
 	/// The weighted recall is a weighted mean of each class's recall weighted by the fraction of the total examples in the class.
+	#[pyo3(get)]
 	pub recall_weighted: f32,
 }
 
+#[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
 /// ClassMetrics are class specific metrics used to evaluate the model's performance on each individual class.
 pub struct ClassMetrics {
 	/// This is the total number of examples whose label is equal to this class that the model predicted as belonging to this class.
+	#[pyo3(get)]
 	pub true_positives: u64,
 	/// This is the total number of examples whose label is *not* equal to this class that the model predicted as belonging to this class.
+	#[pyo3(get)]
 	pub false_positives: u64,
 	/// This is the total number of examples whose label is *not* equal to this class that the model predicted as *not* belonging to this class.
+	#[pyo3(get)]
 	pub true_negatives: u64,
 	/// This is the total number of examples whose label is equal to this class that the model predicted as *not* belonging to this class.
+	#[pyo3(get)]
 	pub false_negatives: u64,
 	/// The accuracy is the fraction of examples of this class that were correctly classified.
+	#[pyo3(get)]
 	pub accuracy: f32,
 	/// The precision is the fraction of examples the model predicted as belonging to this class whose label is actually equal to this class. `precision = true_positives / (true_positives + false_positives)`. See [Precision and Recall](https://en.wikipedia.org/wiki/Precision_and_recall).
+	#[pyo3(get)]
 	pub precision: f32,
 	/// The recall is the fraction of examples in the dataset whose label is equal to this class that the model predicted as equal to this class. `recall = true_positives / (true_positives + false_negatives)`.
+	#[pyo3(get)]
 	pub recall: f32,
 	/// The f1 score is the harmonic mean of the precision and the recall. See [F1 Score](https://en.wikipedia.org/wiki/F1_score).
+	#[pyo3(get, set)]
 	pub f1_score: f32,
 }
 
