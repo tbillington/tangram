@@ -112,3 +112,6 @@ output = model.predict(input)
 
 # Print the output.
 print("Output:", output)
+
+# Print the accuracy.
+print("Accuracy:", model.test_metrics().default_threshold.accuracy)
