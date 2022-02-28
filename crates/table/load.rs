@@ -1,6 +1,9 @@
 use super::*;
 use anyhow::Result;
-use arrow2::array::{ArrayRef, BooleanArray, Utf8Array};
+use arrow2::{
+	array::{ArrayRef, BooleanArray, Utf8Array},
+	types::NativeType,
+};
 use std::{
 	collections::{BTreeMap, BTreeSet},
 	path::Path,
@@ -207,7 +210,6 @@ impl Table {
 		options: Options,
 		handle_progress_event: &mut impl FnMut(LoadProgressEvent),
 	) -> Result<Table> {
-		// TODO: how to determine the number of rows?
 		let n_rows = arrow_arrays[0].len();
 		let n_columns = column_names.len();
 
@@ -242,22 +244,44 @@ impl Table {
 							match physical_ty {
 								arrow2::datatypes::PhysicalType::Primitive(primitive) => {
 									match primitive {
-										//TODO we only support Int64 and Float64 primitive datatype
+										arrow2::datatypes::PrimitiveType::Int8 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::Int16 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::Int32 => {
+											TableColumnType::Number
+										}
 										arrow2::datatypes::PrimitiveType::Int64 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::UInt8 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::UInt16 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::UInt32 => {
+											TableColumnType::Number
+										}
+										arrow2::datatypes::PrimitiveType::UInt64 => {
 											TableColumnType::Number
 										}
 										arrow2::datatypes::PrimitiveType::Float64 => {
 											TableColumnType::Number
 										}
+										arrow2::datatypes::PrimitiveType::Float32 => {
+											TableColumnType::Number
+										}
 										primitive_type => {
-											dbg!(primitive_type);
-											todo!()
+											unimplemented!("{:?}", primitive_type)
 										}
 									}
 								}
-								arrow2::datatypes::PhysicalType::Boolean => {
-									todo!()
-								}
+								arrow2::datatypes::PhysicalType::Boolean => TableColumnType::Enum {
+									variants: vec!["true".to_owned(), "false".to_owned()],
+								},
 								arrow2::datatypes::PhysicalType::Utf8 => {
 									let array = arrow_array
 										.as_any()
@@ -304,33 +328,35 @@ impl Table {
 				TableColumn::Number(column) => {
 					match physical_ty {
 						arrow2::datatypes::PhysicalType::Primitive(primitive) => match primitive {
+							arrow2::datatypes::PrimitiveType::Int8 => {
+								copy_primitive_data::<i8>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::Int16 => {
+								copy_primitive_data::<i16>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::Int32 => {
+								copy_primitive_data::<i32>(array, column, &progress_counter);
+							}
 							arrow2::datatypes::PrimitiveType::Int64 => {
-								let array = array
-									.as_any()
-									.downcast_ref::<arrow2::array::PrimitiveArray<i64>>()
-									.unwrap();
-								for value in array.iter() {
-									let value = match value.and_then(|value| value.to_f32()) {
-										Some(value) => value,
-										_ => std::f32::NAN,
-									};
-									column.data.push(value);
-									progress_counter.inc(1);
-								}
+								copy_primitive_data::<i64>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::UInt8 => {
+								copy_primitive_data::<u8>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::UInt16 => {
+								copy_primitive_data::<u16>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::UInt32 => {
+								copy_primitive_data::<u32>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::UInt64 => {
+								copy_primitive_data::<u64>(array, column, &progress_counter);
+							}
+							arrow2::datatypes::PrimitiveType::Float32 => {
+								copy_primitive_data::<f32>(array, column, &progress_counter);
 							}
 							arrow2::datatypes::PrimitiveType::Float64 => {
-								let array = array
-									.as_any()
-									.downcast_ref::<arrow2::array::PrimitiveArray<f64>>()
-									.unwrap();
-								for value in array.iter() {
-									let value = match value.and_then(|value| value.to_f32()) {
-										Some(value) if value.is_finite() => value,
-										_ => std::f32::NAN,
-									};
-									column.data.push(value);
-									progress_counter.inc(1);
-								}
+								copy_primitive_data::<f64>(array, column, &progress_counter);
 							}
 							_ => unimplemented!(),
 						},
@@ -340,18 +366,28 @@ impl Table {
 				TableColumn::Enum(column) => {
 					match physical_ty {
 						arrow2::datatypes::PhysicalType::Utf8 => {
-							let array = array.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
-							for value in array.iter() {
-								let value = value.and_then(|value| column.value_for_variant(value));
-								column.data.push(value);
-								progress_counter.inc(1);
+							if let Some(array) = array.as_any().downcast_ref::<Utf8Array<i32>>() {
+								for value in array.iter() {
+									let value =
+										value.and_then(|value| column.value_for_variant(value));
+									column.data.push(value);
+									progress_counter.inc(1);
+								}
+							} else {
+								let array =
+									array.as_any().downcast_ref::<Utf8Array<i64>>().unwrap();
+								for value in array.iter() {
+									let value =
+										value.and_then(|value| column.value_for_variant(value));
+									column.data.push(value);
+									progress_counter.inc(1);
+								}
 							}
 						}
 						arrow2::datatypes::PhysicalType::Boolean => {
 							let array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
 							for value in array.iter() {
 								let value = value.and_then(|value| {
-									// TODO this is a hack
 									column.value_for_variant(match value {
 										true => "true",
 										false => "false",
@@ -366,13 +402,21 @@ impl Table {
 				}
 				TableColumn::Text(column) => match physical_ty {
 					arrow2::datatypes::PhysicalType::Utf8 => {
-						let array = array.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
-						for value in array.iter() {
-							// TODO none values
-							column
-								.data
-								.push(value.map_or("".to_owned(), ToOwned::to_owned));
-							progress_counter.inc(1);
+						if let Some(array) = array.as_any().downcast_ref::<Utf8Array<i32>>() {
+							for value in array.iter() {
+								column
+									.data
+									.push(value.map_or("".to_owned(), ToOwned::to_owned));
+								progress_counter.inc(1);
+							}
+						} else {
+							let array = array.as_any().downcast_ref::<Utf8Array<i64>>().unwrap();
+							for value in array.iter() {
+								column
+									.data
+									.push(value.map_or("".to_owned(), ToOwned::to_owned));
+								progress_counter.inc(1);
+							}
 						}
 					}
 					_ => unimplemented!(),
@@ -381,6 +425,27 @@ impl Table {
 		}
 		handle_progress_event(LoadProgressEvent::LoadDone);
 		Ok(table)
+	}
+}
+
+fn copy_primitive_data<T>(
+	array: ArrayRef,
+	column: &mut NumberTableColumn,
+	progress_counter: &ProgressCounter,
+) where
+	T: NativeType + num::ToPrimitive,
+{
+	let array = array
+		.as_any()
+		.downcast_ref::<arrow2::array::PrimitiveArray<T>>()
+		.unwrap();
+	for value in array.iter() {
+		let value = match value.and_then(|value| value.to_f32()) {
+			Some(value) => value,
+			_ => std::f32::NAN,
+		};
+		column.data.push(value);
+		progress_counter.inc(1);
 	}
 }
 
