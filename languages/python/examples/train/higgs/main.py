@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 dataset_url = "https://datasets.tangram.dev/"
 

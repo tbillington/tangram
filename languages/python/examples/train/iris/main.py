@@ -1,4 +1,5 @@
 import pandas as pd
+import tangram
 
 # Load the data.
 
@@ -12,9 +13,9 @@ data_test = pd.read_csv(path_test)
 
 # Train a model!
 model = tangram.train(
-  table_train,
+  data_train,
   "species",
-  table_test
+  data_test
 )
 
 input = {
@@ -31,4 +32,4 @@ output = model.predict(input)
 print("Output:", output)
 
 # Print the output.
-print("Metrics:", model.test_metrics().default_threshold.accuracy)
+print("Metrics:", model.test_metrics().accuracy)
