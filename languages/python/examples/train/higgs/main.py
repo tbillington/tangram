@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
 
-dataset_url = "https://datasets.tangram.dev/"
-
 # Load the data.
-path_train = dataset_url + 'higgs_train.csv'
-path_test = dataset_url + 'higgs_test.csv'
+path_train = 'higgs_train.csv'
+path_test = 'higgs_test.csv'
 target_column_name = "signal"
 dtype = {
 	'signal': bool,
