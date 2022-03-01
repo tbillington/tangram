@@ -61,11 +61,11 @@ impl Model {
 	Load a model from a `.tangram` file at `path`.
 
 	Args:
-	  path (str): The path to the `.tangram` file.
-	  options (Optional[`LoadModelOptions`]): The options to use when loading the model.
+		path (str): The path to the `.tangram` file.
+		options (Optional[`LoadModelOptions`]): The options to use when loading the model.
 
 	Returns:
-	  model (`Model`)
+		model (`Model`)
 	*/
 	#[classmethod]
 	#[args(options = "None")]
@@ -98,11 +98,11 @@ impl Model {
 	Load a model from bytes instead of a file. You should use this only if you already have a `.tangram` loaded into memory. Otherwise, use `Model.from_path`, which is faster because it memory maps the file.
 
 	Args:
-	  bytes (str): The path to the `.tangram` file.
-	  options (Optional[`LoadModelOptions`]): The options to use when loading the model.
+		bytes (str): The path to the `.tangram` file.
+		options (Optional[`LoadModelOptions`]): The options to use when loading the model.
 
 	Returns:
-	  model (`Model`)
+		model (`Model`)
 	*/
 	#[classmethod]
 	#[args(options = "None")]
@@ -131,7 +131,7 @@ impl Model {
 
 	/**
 	Retrieve the model's id.
-	  */
+		*/
 	#[getter]
 	fn id(&self) -> String {
 		self.model.id.clone()
@@ -139,7 +139,7 @@ impl Model {
 
 	/**
 	Set the model's tangram_url.
-	  */
+		*/
 	#[setter]
 	fn set_tangram_url(&mut self, url: String) -> PyResult<()> {
 		let tangram_url = url
@@ -170,11 +170,11 @@ impl Model {
 	Make a prediction!
 
 	Args:
-	  input (Union[List[`PredictInput`], `PredictInput`]): A predict input is either a single predict input which is a dict from strings to strings or floats or an array of such dicts. The keys should match the columns in the CSV file you trained your model with.
-	  options (Optional[`PredictOptions`]): These are the predict options.
+		input (Union[List[`PredictInput`], `PredictInput`]): A predict input is either a single predict input which is a dict from strings to strings or floats or an array of such dicts. The keys should match the columns in the CSV file you trained your model with.
+		options (Optional[`PredictOptions`]): These are the predict options.
 
 	Returns:
-	  [Union[List[`PredictOutput`], `PredictOutput`]). Return a single output if `input` was a single input, or an array if `input` was an array of `input`s.
+		[Union[List[`PredictOutput`], `PredictOutput`]). Return a single output if `input` was a single input, or an array if `input` was an array of `input`s.
 	*/
 	#[pyo3(text_signature = "(input, options=None)")]
 	fn predict(
@@ -205,11 +205,11 @@ impl Model {
 	Send a prediction event to the app. If you want to batch events, you can use `enqueue_log_prediction` instead.
 
 	Args:
-	  identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
-	  input (`PredictInput`): A single `PredictInput`.
-	  output (`PredictOutput`): A single `PredictOutput`.
-	  options (Optional[`PredictOptions`]): This is the same `PredictOptions` value that you passed to `predict`.
-	  */
+		identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
+		input (`PredictInput`): A single `PredictInput`.
+		output (`PredictOutput`): A single `PredictOutput`.
+		options (Optional[`PredictOptions`]): This is the same `PredictOptions` value that you passed to `predict`.
+		*/
 	#[args(identifier, input, output, options = "None")]
 	#[pyo3(text_signature = "(identifier, input, output, options=None)")]
 	fn log_prediction(
@@ -227,10 +227,10 @@ impl Model {
 	/**
 	Add a prediction event to the queue. Remember to call `flush_log_queue` at a later point to send the event to the app.
 	Args:
-	  identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
-	  input (`PredictInput`): A single `PredictInput`.
-	  output (`PredictOutput`): A single `PredictOutput`.
-	  options (`PredictOptions`): This is the same `predictOptions` value that you passed to `predict`.
+		identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
+		input (`PredictInput`): A single `PredictInput`.
+		output (`PredictOutput`): A single `PredictOutput`.
+		options (`PredictOptions`): This is the same `predictOptions` value that you passed to `predict`.
 	*/
 	#[pyo3(text_signature = "(identifier, input, output, options=None)")]
 	fn enqueue_log_prediction(
@@ -248,8 +248,8 @@ impl Model {
 	Send a true value event to the app. If you want to batch events, you can use `enqueue_log_true_value` instead.
 
 	Args:
-	  identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
-	  true_value (Union[str, float]): This is the true value for the prediction.
+		identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
+		true_value (Union[str, float]): This is the true value for the prediction.
 	*/
 	#[pyo3(text_signature = "(identifier, true_value)")]
 	fn log_true_value(
@@ -266,8 +266,8 @@ impl Model {
 	Add a true value event to the queue. Remember to call `flush_log_queue` at a later point to send the event to the app.
 
 	Args:
-	  identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
-	  true_value (Union[str, float]): This is the true value for the prediction.
+		identifier (Union[str, float]): This is a unique identifier for the prediction, which will associate it with a true value event and allow you to look it up in the app.
+		true_value (Union[str, float]): This is the true value for the prediction.
 	*/
 	#[pyo3(text_signature = "(identifier, true_value)")]
 	fn enqueue_log_true_value(&mut self, identifier: NumberOrString, true_value: NumberOrString) {
@@ -286,7 +286,7 @@ impl Model {
 
 	/**
 	Retrieve the model's test metrics.
-	  */
+		*/
 	fn test_metrics(&self) -> PyResult<Metrics> {
 		match &self.core_model {
 			CoreModel::Path(path) => test_metrics_from_path(path),
@@ -688,7 +688,7 @@ pub struct ClassMetrics {
 These are the options passed when loading a model.
 
 Attributes:
-  tangram_url (Optional[str]): If you are running the app locally or on your own server, use this field to provide the url to it.
+	tangram_url (Optional[str]): If you are running the app locally or on your own server, use this field to provide the url to it.
 */
 #[pyclass]
 #[derive(Clone, Debug)]
@@ -752,9 +752,9 @@ impl From<PredictInputValue> for tangram_core::predict::PredictInputValue {
 These are the options passed to `Model.predict`.
 
 Attributes:
-  threshold (Optional[float]): If your model is a binary classifier, use this field to make predictions using a threshold chosen on the tuning page of the app. The default value is `0.5`.
+	threshold (Optional[float]): If your model is a binary classifier, use this field to make predictions using a threshold chosen on the tuning page of the app. The default value is `0.5`.
 
-  compute_feature_contributions (Optional[bool]): Computing feature contributions is disabled by default. If you set this field to `true`, you will be able to access the feature contributions with the `featureContributions` field of the predict output.
+	compute_feature_contributions (Optional[bool]): Computing feature contributions is disabled by default. If you set this field to `true`, you will be able to access the feature contributions with the `featureContributions` field of the predict output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -843,8 +843,8 @@ impl From<tangram_core::predict::PredictOutput> for PredictOutput {
 `Model.predict` outputs `RegressionPredictOutput` when the model's task is regression.
 
 Attributes:
-  value: This is the predicted value.
-  feature_contributions (`FeatureContributions`): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output.
+	value: This is the predicted value.
+	feature_contributions (`FeatureContributions`): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -869,9 +869,9 @@ impl From<tangram_core::predict::RegressionPredictOutput> for RegressionPredictO
 `Model.predict` outputs `BinaryClassificationPredictOutput` when the model's task is binary classification.
 
 Attributes:
-  class_name (str): This is the name of the predicted class.
-  probability (float): This is the probability the model assigned to the predicted class.
-  feature_contributions (`FeatureContributions`): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output.
+	class_name (str): This is the name of the predicted class.
+	probability (float): This is the probability the model assigned to the predicted class.
+	feature_contributions (`FeatureContributions`): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -901,10 +901,10 @@ impl From<tangram_core::predict::BinaryClassificationPredictOutput>
 `Model.predict` outputs `MulticlassClassificationPredictOutput` when the model's task is multiclass classification.
 
 Attributes:
-  class_name (str): This is the name of the predicted class.
-  probability (float): This is the probability the model assigned to the predicted class.
-  probabilities (Dict[str, float]): This value maps from class names to the probability the model assigned to each class.
-  feature_contributions (Dict[str, `FeatureContributions`]): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output. This value maps from class names to `FeatureContributions` values for each class. The class with the `FeatureContributions` value with the highest `FeatureContributions.output_value` is the predicted class.
+	class_name (str): This is the name of the predicted class.
+	probability (float): This is the probability the model assigned to the predicted class.
+	probabilities (Dict[str, float]): This value maps from class names to the probability the model assigned to each class.
+	feature_contributions (Dict[str, `FeatureContributions`]): If computing feature contributions was enabled in the predict options, this value will explain the model's output, showing how much each feature contributed to the output. This value maps from class names to `FeatureContributions` values for each class. The class with the `FeatureContributions` value with the highest `FeatureContributions.output_value` is the predicted class.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -942,9 +942,9 @@ impl From<tangram_core::predict::MulticlassClassificationPredictOutput>
 This is a description of the feature contributions for the prediction if the task is regression or binary classification, or for a single class if the task is multiclass classification.
 
 Attributes:
-  baseline_value (float): This is the value the model would output if all features had baseline values.
-  output_value (float): This is the value the model output. Any difference from the `baseline_value` is because of the deviation of the features from their baseline values.
-  entries (List[`FeatureContributionEntry`]): This list will contain one entry for each of the model's features. Note that features are computed from columns, so there will likely be more features than columns.
+	baseline_value (float): This is the value the model would output if all features had baseline values.
+	output_value (float): This is the value the model output. Any difference from the `baseline_value` is because of the deviation of the features from their baseline values.
+	entries (List[`FeatureContributionEntry`]): This list will contain one entry for each of the model's features. Note that features are computed from columns, so there will likely be more features than columns.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1027,9 +1027,9 @@ impl From<tangram_core::predict::FeatureContributionEntry> for FeatureContributi
 This describes the contribution of a feature from an identity feature group.
 
 Attributes:
-  column_name (str): This is the name of the source column for the feature group.
-  feature_value (float): This is the value of the feature.
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.
+	column_name (str): This is the name of the source column for the feature group.
+	feature_value (float): This is the value of the feature.
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1056,9 +1056,9 @@ impl From<tangram_core::predict::IdentityFeatureContribution> for IdentityFeatur
 This describes the contribution of a feature from a normalized feature group.
 
 Attributes:
-  column_name (str): This is the name of the source column for the feature group.
-  feature_value (float): This is the value of the feature.
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.
+	column_name (str): This is the name of the source column for the feature group.
+	feature_value (float): This is the value of the feature.
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1085,10 +1085,10 @@ impl From<tangram_core::predict::NormalizedFeatureContribution> for NormalizedFe
 This describes the contribution of a feature from a one hot encoded feature group.
 
 Attributes:
-  column_name (str): This is the name of the source column for the feature group.
-  variant (str): This is the enum variant the feature indicates the presence of.
-  feature_value (float): This is the value of the feature.
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.b
+	column_name (str): This is the name of the source column for the feature group.
+	variant (str): This is the enum variant the feature indicates the presence of.
+	feature_value (float): This is the value of the feature.
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.b
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1120,10 +1120,10 @@ impl From<tangram_core::predict::OneHotEncodedFeatureContribution>
 This describes the contribution of a feature from a bag of words feature group.
 
 Attributes:
-  column_name (str): This is the name of the source column for the feature group.
-  ngram (`NGram`): This is the ngram for the feature.
-  feature_value (float): This is the value of the feature..
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.
+	column_name (str): This is the name of the source column for the feature group.
+	ngram (`NGram`): This is the ngram for the feature.
+	feature_value (float): This is the value of the feature..
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1180,11 +1180,11 @@ impl From<tangram_core::predict::NGram> for NGram {
 This describes the contribution of a feature from a bag of words cosine similarity feature group.
 
 Attributes:
-  column_name_a (str): This is the name of the first source column for the feature group.
-  column_name_b (str): This is the name of the second source column for the feature group.
-  ngram (`NGram`): This is the ngram for the feature.
-  feature_value (float): This is the value of the feature..
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.
+	column_name_a (str): This is the name of the first source column for the feature group.
+	column_name_b (str): This is the name of the second source column for the feature group.
+	ngram (`NGram`): This is the ngram for the feature.
+	feature_value (float): This is the value of the feature..
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1216,9 +1216,9 @@ impl From<tangram_core::predict::BagOfWordsCosineSimilarityFeatureContribution>
 This describes the contribution of a feature from a word embedding feature group.
 
 Attributes:
-  column_name (str): This is the name of the source column for the feature group.
-  value_index (int): This is the index of the feature in the word embedding.
-  feature_contribution_value (float): This is the amount that the feature contributed to the output.
+	column_name (str): This is the name of the source column for the feature group.
+	value_index (int): This is the index of the feature in the word embedding.
+	feature_contribution_value (float): This is the amount that the feature contributed to the output.
 */
 #[pyclass]
 #[derive(Clone, Debug, serde::Serialize)]
@@ -1803,11 +1803,37 @@ impl Into<tangram_core::config::BinnedFeaturesLayout> for BinnedFeaturesLayout {
 	}
 }
 
-#[derive(FromPyObject, Debug)]
+#[derive(Debug)]
 struct EarlyStoppingOptions {
 	early_stopping_fraction: f32,
 	n_rounds_without_improvement_to_stop: usize,
 	min_decrease_in_loss_for_significant_change: f32,
+}
+
+impl Default for EarlyStoppingOptions {
+	fn default() -> Self {
+		Self {
+			early_stopping_fraction: 0.1,
+			n_rounds_without_improvement_to_stop: 5,
+			min_decrease_in_loss_for_significant_change: 1e-5,
+		}
+	}
+}
+
+impl<'source> FromPyObject<'source> for EarlyStoppingOptions {
+	fn extract(ob: &'source PyAny) -> PyResult<Self> {
+		let mut early_stopping_options = EarlyStoppingOptions::default();
+		if let Ok(item) = ob.get_item("early_stopping_fraction") {
+			early_stopping_options.early_stopping_fraction = item.extract()?;
+		}
+		if let Ok(item) = ob.get_item("n_rounds_without_improvement_to_stop") {
+			early_stopping_options.n_rounds_without_improvement_to_stop = item.extract()?;
+		}
+		if let Ok(item) = ob.get_item("min_decrease_in_loss_for_significant_change") {
+			early_stopping_options.min_decrease_in_loss_for_significant_change = item.extract()?;
+		}
+		Ok(early_stopping_options)
+	}
 }
 
 impl Into<tangram_core::config::EarlyStoppingOptions> for EarlyStoppingOptions {

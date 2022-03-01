@@ -50,7 +50,12 @@ model = tangram.train(
 			"binned_features_layout": "row_major",
 			"learning_rate": 0.1,
 			"max_rounds": 100,
-			"max_leaf_nodes": 255
+			"max_leaf_nodes": 255,
+			"early_stopping_options": {
+				"early_stopping_fraction": 0.1,
+				"n_rounds_without_improvement_to_stop": 5,
+				"min_decrease_in_loss_for_significant_change": 1e-5,
+			}
 		}
 	],
 )
