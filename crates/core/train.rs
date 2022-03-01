@@ -241,6 +241,7 @@ impl Trainer {
 		// Create the hyperparameter grid.
 		let grid =
 			compute_hyperparameter_grid(&config, &task, target_column_index, &train_column_stats);
+		dbg!(&grid);
 
 		let trainer = Trainer {
 			id,
@@ -1705,6 +1706,15 @@ fn compute_tree_options(options: &grid::TreeModelTrainOptions) -> tangram_tree::
 		compute_losses: true,
 		..Default::default()
 	};
+	if let Some(binned_features_layout) = options.binned_features_layout.as_ref() {
+		let binned_features_layout = match binned_features_layout {
+			grid::BinnedFeaturesLayout::RowMajor => tangram_tree::BinnedFeaturesLayout::RowMajor,
+			grid::BinnedFeaturesLayout::ColumnMajor => {
+				tangram_tree::BinnedFeaturesLayout::ColumnMajor
+			}
+		};
+		tree_options.binned_features_layout = binned_features_layout;
+	}
 	if let Some(early_stopping_options) = options.early_stopping_options.as_ref() {
 		tree_options.early_stopping_options = Some(tangram_tree::EarlyStoppingOptions {
 			early_stopping_fraction: early_stopping_options.early_stopping_fraction,
