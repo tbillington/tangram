@@ -50,6 +50,7 @@ pub fn train(
 ) -> TrainOutput {
 	#[cfg(feature = "timing")]
 	let timing = Timing::new();
+	let start = std::time::Instant::now();
 
 	// If early stopping is enabled, split the features and labels into train and early stopping sets.
 	let early_stopping_enabled = train_options.early_stopping_options.is_some();
@@ -387,6 +388,8 @@ pub fn train(
 	// Print out the timing and tree information if the timing feature is enabled.
 	#[cfg(feature = "timing")]
 	eprintln!("{:?}", timing);
+
+	dbg!("training elapsed: {}", start.elapsed());
 
 	// Assemble the model.
 	let trees: Vec<Tree> = trees
