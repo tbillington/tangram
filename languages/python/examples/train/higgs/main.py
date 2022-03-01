@@ -46,8 +46,8 @@ model = tangram.train(
 	data_test,
 	grid=[
 		{
-			"model": "tree",
-			"binned_features_layout": "RowMajor",
+			"type": "tree",
+			"binned_features_layout": "row_major",
 			"learning_rate": 0.1,
 			"max_rounds": 100,
 			"max_leaf_nodes": 255
