@@ -1500,6 +1500,7 @@ fn train_inner(
 		grid,
 		comparison_metric,
 	);
+	dbg!(&config);
 
 	let mut trainer =
 		tangram_core::train::Trainer::prepare(dataset, &target, config, &mut |_| {}).unwrap();

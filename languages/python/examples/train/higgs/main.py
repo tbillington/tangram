@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import tangram
 
 # Load the data.
 path_train = 'higgs_train.csv'
@@ -45,8 +46,8 @@ model = tangram.train(
 	data_test,
 	grid=[
 		{
-			"type": "tree",
-			"binned_features_layout": "row_major",
+			"model": "tree",
+			"binned_features_layout": "RowMajor",
 			"learning_rate": 0.1,
 			"max_rounds": 100,
 			"max_leaf_nodes": 255
