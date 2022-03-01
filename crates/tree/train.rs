@@ -50,6 +50,8 @@ pub fn train(
 ) -> TrainOutput {
 	#[cfg(feature = "timing")]
 	let timing = Timing::new();
+
+	dbg!(train_options);
 	let start = std::time::Instant::now();
 
 	// If early stopping is enabled, split the features and labels into train and early stopping sets.
