@@ -392,6 +392,7 @@ pub fn train(
 	eprintln!("{:?}", timing);
 
 	dbg!("training elapsed: {}", start.elapsed());
+	dbg!("num trees: {}", n_rounds_trained);
 
 	// Assemble the model.
 	let trees: Vec<Tree> = trees
