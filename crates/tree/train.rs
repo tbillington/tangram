@@ -393,6 +393,8 @@ pub fn train(
 
 	dbg!("training elapsed: {}", start.elapsed());
 	dbg!("num trees: {}", n_rounds_trained);
+	dbg!("predictions shape: {}", predictions.shape());
+	dbg!("binned_features_layout: {}", binned_features_layout);
 
 	// Assemble the model.
 	let trees: Vec<Tree> = trees
