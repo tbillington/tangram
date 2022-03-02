@@ -241,7 +241,6 @@ impl Trainer {
 		// Create the hyperparameter grid.
 		let grid =
 			compute_hyperparameter_grid(&config, &task, target_column_index, &train_column_stats);
-		dbg!(&grid);
 
 		let trainer = Trainer {
 			id,
@@ -335,8 +334,6 @@ impl Trainer {
 			| TrainModelOutput::TreeMulticlassClassifier(_) => "Tree",
 		};
 		let grid_len = train_grid_item_outputs.len();
-		let comparison_metric_value =
-			train_grid_item_outputs[best_grid_item_index].comparison_metric_value;
 
 		// Test the best model.
 		let test_metrics = test_model(&train_model_output, &table_test, &mut |progress_event| {
@@ -582,18 +579,50 @@ impl Trainer {
 			Task::Regression => "regression",
 		};
 		let comparison_metric_str = match comparison_metric {
-			ComparisonMetric::BinaryClassification(bcm) => match bcm {
-				BinaryClassificationComparisonMetric::AucRoc => "AUC ROC",
-			},
-			ComparisonMetric::MulticlassClassification(mccm) => match mccm {
-				MulticlassClassificationComparisonMetric::Accuracy => "Accuracy",
-			},
 			ComparisonMetric::Regression(rcm) => match rcm {
 				RegressionComparisonMetric::MeanAbsoluteError => "mean absolute error",
 				RegressionComparisonMetric::MeanSquaredError => "mean squared error",
 				RegressionComparisonMetric::RootMeanSquaredError => "root mean squared error",
 				RegressionComparisonMetric::R2 => "r2",
 			},
+			ComparisonMetric::BinaryClassification(bcm) => match bcm {
+				BinaryClassificationComparisonMetric::AucRoc => "AUC ROC",
+			},
+			ComparisonMetric::MulticlassClassification(mccm) => match mccm {
+				MulticlassClassificationComparisonMetric::Accuracy => "Accuracy",
+			},
+		};
+		let test_metric_value = match comparison_metric {
+			ComparisonMetric::Regression(rcm) => {
+				let test_metrics = match &model.inner {
+					ModelInner::Regressor(r) => &r.test_metrics,
+					_ => unreachable!(),
+				};
+				match rcm {
+					RegressionComparisonMetric::MeanAbsoluteError => test_metrics.mae,
+					RegressionComparisonMetric::MeanSquaredError => test_metrics.mse,
+					RegressionComparisonMetric::RootMeanSquaredError => test_metrics.rmse,
+					RegressionComparisonMetric::R2 => test_metrics.r2,
+				}
+			}
+			ComparisonMetric::BinaryClassification(bcm) => {
+				let test_metrics = match &model.inner {
+					ModelInner::BinaryClassifier(b) => &b.test_metrics,
+					_ => unreachable!(),
+				};
+				match bcm {
+					BinaryClassificationComparisonMetric::AucRoc => test_metrics.auc_roc_approx,
+				}
+			}
+			ComparisonMetric::MulticlassClassification(mccm) => {
+				let test_metrics = match &model.inner {
+					ModelInner::MulticlassClassifier(m) => &m.test_metrics,
+					_ => unreachable!(),
+				};
+				match mccm {
+					MulticlassClassificationComparisonMetric::Accuracy => test_metrics.accuracy,
+				}
+			}
 		};
 		handle_progress_event(ProgressEvent::Info(format!(
 			"Selected {} Model {} of {} for {} result ({}: {})",
@@ -602,7 +631,7 @@ impl Trainer {
 			grid_len,
 			task_str,
 			comparison_metric_str,
-			comparison_metric_value
+			test_metric_value
 		)));
 		Ok(model)
 	}

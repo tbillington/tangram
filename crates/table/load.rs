@@ -316,7 +316,6 @@ impl Table {
 		let mut table = create_table(column_names, column_types, Some(n_rows));
 
 		// Read each array and insert the values into the columns of the table.
-		let start = std::time::Instant::now();
 		let progress_counter = ProgressCounter::new((n_rows * n_columns).to_u64().unwrap());
 		handle_progress_event(LoadProgressEvent::LoadStarted(progress_counter.clone()));
 		for (column, array) in zip!(table.columns.iter_mut(), arrow_arrays) {
@@ -425,7 +424,6 @@ impl Table {
 			}
 		}
 		handle_progress_event(LoadProgressEvent::LoadDone);
-		dbg!("time elapsed: {}", start.elapsed());
 		Ok(table)
 	}
 }
