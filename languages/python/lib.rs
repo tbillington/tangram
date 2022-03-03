@@ -1462,6 +1462,8 @@ fn train_inner(
 	grid: Option<Vec<GridItem>>,
 	comparison_metric: Option<ComparisonMetric>,
 ) -> PyResult<Model> {
+	let kill_chip = unsafe { ctrl_c::register_ctrl_c_handler().unwrap() };
+
 	// Construct the dataset
 	let column_names = arrow_arrays_train
 		.iter()
@@ -1503,7 +1505,7 @@ fn train_inner(
 
 	let mut trainer =
 		tangram_core::train::Trainer::prepare(dataset, &target, config, &mut |_| {}).unwrap();
-	let train_grid_item_outputs = trainer.train_grid(None, &mut |_| {}).unwrap();
+	let train_grid_item_outputs = trainer.train_grid(Some(kill_chip), &mut |_| {}).unwrap();
 	let model = trainer
 		.test_and_assemble_model(train_grid_item_outputs, &mut |_| {})
 		.unwrap();
@@ -1907,5 +1909,74 @@ pub fn array_to_rust(obj: &PyAny) -> PyResult<ArrayRef> {
 		let field = ffi::import_field_from_c(schema.as_ref()).unwrap();
 		let array = ffi::import_array_from_c(array, &field).unwrap();
 		Ok(array.into())
+	}
+}
+
+#[cfg(unix)]
+mod ctrl_c {
+
+	use anyhow::Result;
+	use tangram_kill_chip::KillChip;
+
+	static mut KILL_CHIP: KillChip = KillChip::new();
+
+	unsafe extern "C" fn kill_chip_handler(_: u32) {
+		let previous_value = KILL_CHIP.activate();
+		if previous_value {
+			libc::_exit(1);
+		}
+	}
+
+	pub unsafe fn register_ctrl_c_handler() -> Result<&'static KillChip> {
+		let res = libc::signal(libc::SIGINT, kill_chip_handler as libc::sighandler_t);
+		if res == libc::SIG_ERR {
+			return Err(std::io::Error::last_os_error().into());
+		}
+		Ok(&KILL_CHIP)
+	}
+
+	pub unsafe fn unregister_ctrl_c_handler() -> Result<()> {
+		let res = libc::signal(libc::SIGINT, libc::SIG_DFL);
+		if res == libc::SIG_ERR {
+			return Err(std::io::Error::last_os_error().into());
+		}
+		Ok(())
+	}
+}
+
+#[cfg(windows)]
+mod ctrl_c {
+
+	use anyhow::Result;
+	use tangram_kill_chip::KillChip;
+	use winapi::{
+		shared::minwindef::{BOOL, DWORD, FALSE, TRUE},
+		um::{consoleapi::SetConsoleCtrlHandler, processthreadsapi::ExitProcess},
+	};
+
+	static mut KILL_CHIP: KillChip = KillChip::new();
+
+	unsafe extern "system" fn kill_chip_handler(_: DWORD) -> BOOL {
+		let previous_value = KILL_CHIP.activate();
+		if previous_value {
+			ExitProcess(1);
+		}
+		TRUE
+	}
+
+	pub unsafe fn register_ctrl_c_handler() -> Result<&'static KillChip> {
+		let err = SetConsoleCtrlHandler(Some(kill_chip_handler), TRUE);
+		if err == 0 {
+			return Err(std::io::Error::last_os_error().into());
+		}
+		Ok(&KILL_CHIP)
+	}
+
+	pub unsafe fn unregister_ctrl_c_handler() -> Result<()> {
+		let err = SetConsoleCtrlHandler(Some(kill_chip_handler), FALSE);
+		if err == 0 {
+			return Err(std::io::Error::last_os_error().into());
+		}
+		Ok(())
 	}
 }
