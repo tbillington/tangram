@@ -63,3 +63,4 @@ model = tangram.train(
 accuracy = model.test_metrics().default_threshold.accuracy
 
 print("accuracy: ", accuracy)
+print("auc: ", model.test_metrics().auc_roc)
