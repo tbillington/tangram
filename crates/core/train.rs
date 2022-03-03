@@ -267,7 +267,7 @@ impl Trainer {
 	/// Train each model in the grid and compute comparison metrics.
 	pub fn train_grid(
 		&mut self,
-		kill_chip: Option<&KillChip>,
+		kill_chip: &KillChip,
 		handle_progress_event: &mut dyn FnMut(ProgressEvent),
 	) -> Result<Vec<TrainGridItemOutput>> {
 		let (table_train, table_comparison, _) = self.dataset.split();
@@ -277,7 +277,7 @@ impl Trainer {
 			.iter()
 			.cloned()
 			.enumerate()
-			.take_while(|_| !kill_chip.map(|k| k.is_activated()).unwrap_or(false))
+			.take_while(|_| !kill_chip.is_activated())
 			.map(|(grid_item_index, grid_item)| {
 				train_grid_item(
 					grid.len(),
@@ -1180,7 +1180,7 @@ fn train_grid_item(
 	table_train: &TableView,
 	table_comparison: &TableView,
 	comparison_metric: ComparisonMetric,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(ProgressEvent),
 ) -> TrainGridItemOutput {
 	let start = Instant::now();
@@ -1331,7 +1331,7 @@ pub struct TreeMulticlassClassifierTrainModelOutput {
 fn train_model(
 	grid_item: grid::GridItem,
 	table_train: &TableView,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	match grid_item {
@@ -1415,7 +1415,7 @@ fn train_linear_regressor(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::LinearModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();
@@ -1463,7 +1463,7 @@ fn train_tree_regressor(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::TreeModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();
@@ -1511,7 +1511,7 @@ fn train_linear_binary_classifier(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::LinearModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();
@@ -1559,7 +1559,7 @@ fn train_tree_binary_classifier(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::TreeModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();
@@ -1607,7 +1607,7 @@ fn train_linear_multiclass_classifier(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::LinearModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();
@@ -1659,7 +1659,7 @@ fn train_tree_multiclass_classifier(
 	target_column_index: usize,
 	feature_groups: Vec<tangram_features::FeatureGroup>,
 	options: grid::TreeModelTrainOptions,
-	kill_chip: Option<&KillChip>,
+	kill_chip: &KillChip,
 	handle_progress_event: &mut dyn FnMut(TrainGridItemProgressEvent),
 ) -> TrainModelOutput {
 	let n_features = feature_groups.iter().map(|f| f.n_features()).sum::<usize>();

@@ -626,16 +626,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ctrlc"
-version = "3.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a19c6cedffdc8c03a3346d723eb20bd85a13362bb96dc2ac000842c6381ec7bf"
-dependencies = [
- "nix",
- "winapi",
-]
-
-[[package]]
 name = "der"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1687,19 +1677,6 @@ dependencies = [
  "num-traits",
  "rawpointer",
  "rayon",
-]
-
-[[package]]
-name = "nix"
-version = "0.23.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f866317acbd3a240710c63f065ffb1e4fd466259045ccb504130b7f668f35c6"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if",
- "libc",
- "memoffset",
 ]
 
 [[package]]
@@ -4535,7 +4512,6 @@ dependencies = [
  "hyper",
  "insta",
  "itertools",
- "libc",
  "num",
  "once_cell",
  "pretty_assertions",
@@ -4546,6 +4522,7 @@ dependencies = [
  "tangram_app",
  "tangram_app_core",
  "tangram_core",
+ "tangram_ctrlc",
  "tangram_id",
  "tangram_kill_chip",
  "tangram_license",
@@ -4559,7 +4536,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
- "winapi",
 ]
 
 [[package]]
@@ -4597,6 +4573,16 @@ dependencies = [
  "tangram_text",
  "tangram_tree",
  "tangram_zip",
+]
+
+[[package]]
+name = "tangram_ctrlc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "libc",
+ "tangram_kill_chip",
+ "winapi",
 ]
 
 [[package]]
@@ -4781,20 +4767,18 @@ dependencies = [
  "anyhow",
  "arrow2",
  "chrono",
- "ctrlc",
- "libc",
  "memmap",
  "pyo3",
  "reqwest",
  "serde",
  "serde_json",
  "tangram_core",
+ "tangram_ctrlc",
  "tangram_kill_chip",
  "tangram_metrics",
  "tangram_model",
  "tangram_table",
  "url",
- "winapi",
 ]
 
 [[package]]

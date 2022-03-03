@@ -370,11 +370,7 @@ pub fn train(
 			break;
 		}
 		// Check if we should stop training.
-		if progress
-			.kill_chip
-			.map(|k| k.is_activated())
-			.unwrap_or(false)
-		{
+		if progress.kill_chip.is_activated() {
 			break;
 		}
 	}
