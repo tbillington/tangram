@@ -87,7 +87,7 @@ pub fn train(args: TrainArgs) -> Result<()> {
 			&mut handle_progress_event,
 		)?;
 
-		trainer.config();
+		trainer.log_config_hacky();
 
 		if let Some(progress_thread) = progress_thread.as_mut() {
 			progress_thread.send_progress_event(ProgressEvent::Info(

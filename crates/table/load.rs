@@ -192,6 +192,11 @@ impl Table {
 		// Create the table.
 		let column_names = column_names.into_iter().map(Some).collect();
 		let mut table = Table::new(column_names, column_types);
+
+		// {
+		// 	table.columns.iter().map(|c| Column);
+		// }
+
 		// If an inference pass was done, reserve storage for the values because we know how many rows are in the csv.
 		if let Some(n_rows) = n_rows {
 			for column in table.columns.iter_mut() {

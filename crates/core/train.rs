@@ -65,7 +65,7 @@ pub struct Trainer {
 }
 
 impl Trainer {
-	pub fn config(&self) {
+	pub fn log_config_hacky(&self) {
 		let t = match &*self.dataset {
 			Dataset::Train(t) => &t.table,
 			Dataset::TrainAndTest(t) => &t.table_train,
