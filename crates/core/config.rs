@@ -3,7 +3,7 @@ This module defines the `Config` struct, which is used to configure training a m
 */
 
 /// This is a configuration used for training.
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
 	/// Use this field to configure the loading, shuffling, and interpretation of your dataset.
@@ -14,7 +14,7 @@ pub struct Config {
 	pub train: Train,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Dataset {
 	/// This option controls shuffling of the dataset before splitting and training.
@@ -28,14 +28,14 @@ pub struct Dataset {
 }
 
 /// This option controls whether the dataset should be shuffled before splitting and training.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Shuffle {
 	pub enable: bool,
 	pub seed: u64,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type")]
 pub enum Column {
 	#[serde(rename = "unknown")]
@@ -48,32 +48,32 @@ pub enum Column {
 	Text(TextColumn),
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UnknownColumn {
 	pub name: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NumberColumn {
 	pub name: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct EnumColumn {
 	pub name: String,
 	pub variants: Vec<String>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TextColumn {
 	pub name: String,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Features {
 	/// Use this field to control automatic feature engineering.
@@ -82,7 +82,7 @@ pub struct Features {
 	pub include: Option<Vec<FeatureGroup>>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AutoFeatures {
 	/// Enable or disable automatic feature engineering.
@@ -91,7 +91,7 @@ pub struct AutoFeatures {
 	pub exclude_columns: Option<Vec<String>>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type")]
 pub enum FeatureGroup {
 	#[serde(rename = "identity")]
@@ -106,32 +106,32 @@ pub enum FeatureGroup {
 	BagOfWordsCosineSimilarity(BagOfWordsCosineSimilarityFeatureGroup),
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityFeatureGroup {
 	pub source_column_name: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NormalizedFeatureGroup {
 	pub source_column_name: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct OneHotEncodedFeatureGroup {
 	pub source_column_name: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BagOfWordsFeatureGroup {
 	pub source_column_name: String,
 	pub strategy: Option<BagOfWordsFeatureGroupStrategy>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub enum BagOfWordsFeatureGroupStrategy {
 	#[serde(rename = "present")]
 	Present,
@@ -141,14 +141,14 @@ pub enum BagOfWordsFeatureGroupStrategy {
 	TfIdf,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BagOfWordsCosineSimilarityFeatureGroup {
 	pub source_column_name_a: String,
 	pub source_column_name_b: String,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Train {
 	/// Use `autogrid` to control how the default hyperparameter grid is computed.
@@ -159,13 +159,13 @@ pub struct Train {
 	pub comparison_metric: Option<ComparisonMetric>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize)]
 pub struct AutoGridOptions {
 	/// Which types of model to train
 	pub model_types: Option<Vec<ModelType>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum ModelType {
 	#[serde(rename = "linear")]
 	Linear,
@@ -173,7 +173,7 @@ pub enum ModelType {
 	Tree,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "model")]
 pub enum GridItem {
 	#[serde(rename = "linear")]
@@ -183,7 +183,7 @@ pub enum GridItem {
 }
 
 /// These are the options used for training linear models.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LinearGridItem {
 	/// Specify options for early stopping. If the value is `Some`, early stopping will be enabled. If it is `None`, early stopping will be disabled.
@@ -199,7 +199,7 @@ pub struct LinearGridItem {
 }
 
 /// These are the options used for training tree models.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TreeGridItem {
 	/// This option controls whether binned features will be laid out in row major or column major order. Each will produce the same result, but row major will be faster for datasets with more rows and fewer columns, while column major will be faster for datasets with fewer rows and more columns.
@@ -233,7 +233,7 @@ pub struct TreeGridItem {
 }
 
 /// This enum defines whether binned features will be layed out in row major or column major order.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub enum BinnedFeaturesLayout {
 	#[serde(rename = "row_major")]
 	RowMajor,
@@ -242,7 +242,7 @@ pub enum BinnedFeaturesLayout {
 }
 
 /// The parameters in this struct control how to determine whether training should stop early after each round or epoch.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct EarlyStoppingOptions {
 	/// This is the fraction of the dataset that is set aside to compute the early stopping metric.
@@ -253,7 +253,7 @@ pub struct EarlyStoppingOptions {
 	pub min_decrease_in_loss_for_significant_change: f32,
 }
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub enum ComparisonMetric {
 	#[serde(rename = "mae")]
 	Mae,

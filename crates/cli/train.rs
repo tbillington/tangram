@@ -86,6 +86,9 @@ pub fn train(args: TrainArgs) -> Result<()> {
 			args.config.as_deref(),
 			&mut handle_progress_event,
 		)?;
+
+		trainer.config();
+
 		if let Some(progress_thread) = progress_thread.as_mut() {
 			progress_thread.send_progress_event(ProgressEvent::Info(
 				"Press ctrl-c to stop early and save the best model trained so far.".to_owned(),

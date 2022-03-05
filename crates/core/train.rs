@@ -65,6 +65,45 @@ pub struct Trainer {
 }
 
 impl Trainer {
+	pub fn config(&self) {
+		let t = match &*self.dataset {
+			Dataset::Train(t) => &t.table,
+			Dataset::TrainAndTest(t) => &t.table_train,
+		};
+
+		let columns = t
+			.columns()
+			.iter()
+			.map(|c| {
+				use config::*;
+				match c {
+					TableColumn::Unknown(c) => Column::Unknown(UnknownColumn {
+						name: c.name().clone().unwrap(),
+					}),
+					TableColumn::Number(c) => Column::Number(NumberColumn {
+						name: c.name().clone().unwrap(),
+					}),
+					TableColumn::Enum(c) => Column::Enum(EnumColumn {
+						name: c.name().clone().unwrap(),
+						variants: c.variants().into(),
+					}),
+					TableColumn::Text(c) => Column::Text(TextColumn {
+						name: c.name().clone().unwrap(),
+					}),
+				}
+			})
+			.collect::<Vec<_>>();
+		let config: config::Config = config::Config {
+			dataset: config::Dataset{
+				columns,
+				..Default::default()
+			},
+			..Default::default()
+		};
+		let config = serde_json::to_string_pretty(&config).unwrap();
+		println!("{}", config);
+	}
+
 	pub fn prepare(
 		id: Id,
 		input: TrainingDataSource,
@@ -211,6 +250,8 @@ impl Trainer {
 		// Create the hyperparameter grid.
 		let grid =
 			compute_hyperparameter_grid(&config, &task, target_column_index, &train_column_stats);
+
+		// println!("{}", serde_json::to_string_pretty(&dataset).unwrap());
 
 		let trainer = Trainer {
 			id,
